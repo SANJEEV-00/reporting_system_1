@@ -57,6 +57,7 @@ export async function fetchReports(filters?: ReportFilters): Promise<DailyReport
     const taskDesc = item.Task || item.task || item.TASK;
     const rDate = item.date || item.Date || item.DATE;
     const dur = item.duration || item.Duration || item.DURATION || '0';
+    const projId = item.Project_Id || item.Project_ID || item.project_id || item.Project_id || '';
 
     const profile = profiles?.find(p => p.employee_id === empId);
     
@@ -66,6 +67,7 @@ export async function fetchReports(filters?: ReportFilters): Promise<DailyReport
       actual_employee_id: empId,
       report_date: rDate,
       task_name: projName,
+      project_id: projId,
       work_description: taskDesc,
       hours_worked: dur as any, // duration is a string like "02:30"
       completion_percentage: 100,

@@ -16,6 +16,7 @@ export interface DailyReport {
   id: number;
   report_date: string;
   task_name: string;
+  project_id?: string;
   work_description: string;
   hours_worked: number;
   challenges_faced: string | null;

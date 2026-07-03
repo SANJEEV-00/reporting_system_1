@@ -534,10 +534,14 @@ export default function HodDashboard() {
                       <Text style={{ color: '#6B7280' }}>No reports found for this employee this month.</Text>
                     </View>
                   ) : (
-                    employeeReports.slice(0, 5).map((row, i) => (
-                      <View key={row.id || i} style={styles.tableRow}>
-                        <Text style={[styles.tableCell, {flex: 1}]}>{row.date || row.Date}</Text>
-                        <Text style={[styles.tableCell, {flex: 2}]} numberOfLines={1}>{row.Project_name || row.project_name}</Text>
+                    employeeReports.slice(0, 5).map((row, i) => {
+                      const rowProjId = row.Project_Id || row.Project_ID || row.project_id || row.Project_id;
+                      return (
+                        <View key={row.id || i} style={styles.tableRow}>
+                          <Text style={[styles.tableCell, {flex: 1}]}>{row.date || row.Date}</Text>
+                          <Text style={[styles.tableCell, {flex: 2}]} numberOfLines={1}>
+                            {rowProjId ? `${rowProjId} - ${(row.Project_name || row.project_name)}` : (row.Project_name || row.project_name)}
+                          </Text>
                         <Text style={[styles.tableCell, {flex: 1, textAlign: 'center'}]}>{parseHours(row.duration || row.Duration).toFixed(1)} hrs</Text>
                         <View style={{flex: 1, alignItems: 'center'}}>
                           <View style={[styles.statusChip, getStatusColor('submitted')]}>
@@ -547,8 +551,9 @@ export default function HodDashboard() {
                           </View>
                         </View>
                       </View>
-                    ))
-                  )}
+                    );
+                  })
+                )}
                   {employeeReports.length > 5 && (
                     <TouchableOpacity style={styles.viewAllTasks} onPress={() => router.push('/hod/monthly')}>
                       <Text style={styles.viewAllTasksText}>View all tasks →</Text>

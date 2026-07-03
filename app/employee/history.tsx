@@ -58,7 +58,9 @@ export default function HistoryScreen() {
   const renderTask = ({ item }: { item: Task }) => (
     <View style={styles.taskCard}>
       <View style={styles.taskHeader}>
-        <Text style={styles.taskName}>{item.Project_name}</Text>
+        <Text style={styles.taskName}>
+          {item.Project_Id ? `${item.Project_Id} - ${item.Project_name}` : item.Project_name}
+        </Text>
       </View>
       <Text style={styles.taskDesc}>{item.Task}</Text>
       <View style={styles.taskFooter}>

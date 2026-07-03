@@ -408,14 +408,15 @@ export default function ReportsScreen() {
       const empId = group.employee.employee_id;
 
       // Group projects
-      const projectsText = group.reports.map(r => `- ${r.task_name}`).join('\n\n');
+      const projectsText = group.reports.map(r => `- ${r.project_id ? `${r.project_id} - ` : ''}${r.task_name}`).join('\n\n');
 
       // Group task descriptions
       const tasksText = group.reports.map(r => {
         let desc = extractTaskDescription(r.work_description);
         // Replace unsupported unicode bullets with standard hyphens for jsPDF compatibility
         desc = desc.replace(/[●•\u25CF\u2022]/g, '-');
-        return `[${r.task_name}]\n${desc}`;
+        const projHeader = r.project_id ? `${r.project_id} - ${r.task_name}` : r.task_name;
+        return `[${projHeader}]\n${desc}`;
       }).join('\n\n');
 
       // Group durations
@@ -462,11 +463,12 @@ export default function ReportsScreen() {
       const empName = group.employee.name;
       const empId = group.employee.employee_id;
       
-      const projectsHtml = group.reports.map(r => `<div style="margin-bottom: 6px; font-weight: 600;">&bull; ${r.task_name}</div>`).join('');
+      const projectsHtml = group.reports.map(r => `<div style="margin-bottom: 6px; font-weight: 600;">&bull; ${r.project_id ? `${r.project_id} - ` : ''}${r.task_name}</div>`).join('');
 
       const tasksHtml = group.reports.map(r => {
         const desc = extractTaskDescription(r.work_description);
-        return `<div style="margin-bottom: 12px;"><strong style="color: #1E3A8A; font-size: 13px;">[${r.task_name}]</strong><div style="white-space: pre-wrap; margin-top: 4px; line-height: 1.4; color: #374151;">${desc}</div></div>`;
+        const projHeader = r.project_id ? `${r.project_id} - ${r.task_name}` : r.task_name;
+        return `<div style="margin-bottom: 12px;"><strong style="color: #1E3A8A; font-size: 13px;">[${projHeader}]</strong><div style="white-space: pre-wrap; margin-top: 4px; line-height: 1.4; color: #374151;">${desc}</div></div>`;
       }).join('');
 
       const durationsHtml = group.reports.map(r => `<div style="margin-bottom: 6px;">${r.hours_worked} hrs</div>`).join('');
@@ -1082,7 +1084,7 @@ export default function ReportsScreen() {
                   >
                     <Picker.Item label="Select Project" value="" />
                     {departmentProjects.map(p => (
-                      <Picker.Item key={p.projectid} label={p.projectname} value={p.projectname} />
+                      <Picker.Item key={p.projectid} label={`${p.projectid} - ${p.projectname}`} value={p.projectname} />
                     ))}
                   </Picker>
                 ) : reportType === 'employees' ? (

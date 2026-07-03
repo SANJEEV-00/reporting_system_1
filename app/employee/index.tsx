@@ -528,7 +528,9 @@ export default function EmployeeDashboard() {
             <View style={styles.tableRow} key={index}>
               <Text style={[styles.tableCell, { flex: 0.5, textAlign: 'center' }]}>{index + 1}</Text>
               <Text style={[styles.tableCell, { flex: 3 }]} numberOfLines={2}>
-                <Text style={{fontWeight: '600'}}>{task.taskName}</Text>: {task.rawDescription}
+                <Text style={{fontWeight: '600'}}>
+                  {task.projectId ? `${task.projectId} - ${task.taskName}` : task.taskName}
+                </Text>: {task.rawDescription}
               </Text>
               <Text style={[styles.tableCell, { flex: 0.8, textAlign: 'center' }]}>{task.duration}</Text>
               <View style={[styles.tableCell, { flex: 1.2, flexDirection: 'row', justifyContent: 'center', gap: 12, alignItems: 'center', borderRightWidth: 0 }]}>
