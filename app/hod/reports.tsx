@@ -1311,7 +1311,9 @@ export default function ReportsScreen() {
                 }, {} as Record<string, DailyReport[]>)
               ).map(([project, tasks]) => (
                 <View key={project} style={styles.projectGroup}>
-                  <Text style={styles.projectHeading}>{project}</Text>
+                  <Text style={styles.projectHeading}>
+                    {tasks[0]?.project_id ? `${tasks[0].project_id} - ${project}` : project}
+                  </Text>
                   {tasks.map((task, idx) => (
                     <View key={task.id || idx} style={styles.taskRow}>
                       <Text style={styles.taskDesc} numberOfLines={2}>
@@ -1337,7 +1339,10 @@ export default function ReportsScreen() {
           {reportType === 'projects' && selectedProjectId && (
             <View style={styles.employeeDetailsSection}>
               <Text style={styles.reportHeading}>
-                Project: {selectedProjectId}
+                Project: {(() => {
+                  const pObj = departmentProjects.find(p => p.projectname === selectedProjectId);
+                  return pObj ? `${pObj.projectid} - ${selectedProjectId}` : selectedProjectId;
+                })()}
               </Text>
 
               {Object.entries(
@@ -1471,7 +1476,9 @@ export default function ReportsScreen() {
                         <Text style={[styles.cardLabel, { marginBottom: 6 }]}>Submitted Reports:</Text>
                         {group.reports.map((r, idx) => (
                           <View key={r.id || idx} style={{ borderBottomWidth: idx < group.reports.length - 1 ? 1 : 0, borderBottomColor: '#F3F4F6', paddingVertical: 6 }}>
-                            <Text style={{ fontSize: 14, fontWeight: '600', color: Brand.colors.text }}>{r.task_name}</Text>
+                            <Text style={{ fontSize: 14, fontWeight: '600', color: Brand.colors.text }}>
+                              {r.project_id ? `${r.project_id} - ${r.task_name}` : r.task_name}
+                            </Text>
                             <Text style={{ fontSize: 13, color: Brand.colors.textSecondary, marginTop: 2 }} numberOfLines={2}>
                               {extractTaskDescription(r.work_description)}
                             </Text>
