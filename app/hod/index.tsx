@@ -59,6 +59,7 @@ export default function HodDashboard() {
         .select('*', { count: 'exact' })
         .eq('department', user.department)
         .eq('role', 'employee')
+        .eq('status', 'approved')
         .order('name');
         
       if (emps) {

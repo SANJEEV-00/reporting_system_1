@@ -82,7 +82,7 @@ export default function ReportsScreen() {
         const { data: profile } = await supabase.from('profiles').select('department').eq('id', authData.user.id).single();
         const dept = profile?.department || authData.user.user_metadata?.department;
         if (dept) {
-          const { data: emps } = await supabase.from('profiles').select('*').eq('department', dept).eq('role', 'employee');
+          const { data: emps } = await supabase.from('profiles').select('*').eq('department', dept).eq('role', 'employee').eq('status', 'approved');
           setDepartmentEmployees(emps || []);
 
           const { data: projs } = await supabase

@@ -31,6 +31,7 @@ export default function EmployeeSearch() {
         .from('profiles')
         .select('*')
         .eq('role', 'employee')
+        .eq('status', 'approved')
         .eq('department', user?.department);
         
       if (searchQuery.trim()) {
