@@ -750,7 +750,10 @@ export default function ReportsScreen() {
       }
       groups[projName].push(report);
     });
-    return Object.entries(groups).map(([project, tasks]) => ({ project, tasks }));
+    return Object.entries(groups).map(([project, tasks]) => {
+      const projId = tasks[0]?.project_id;
+      return { project, tasks, project_id: projId };
+    });
   }, [selectedEmployeeDetails]);
 
   const ITEMS_PER_PAGE = 3;
@@ -1683,7 +1686,9 @@ export default function ReportsScreen() {
                         <View key={group.project} style={[styles.tableRow, { paddingVertical: 0, paddingHorizontal: 0, alignItems: 'stretch' }]}>
                           <View style={{ flex: 2, flexDirection: 'row', padding: 16, borderRightWidth: 1, borderRightColor: '#F3F4F6' }}>
                             <Text style={[styles.cell, { flex: 0.5, fontWeight: '700' }]}>{(modalPage - 1) * ITEMS_PER_PAGE + index + 1}</Text>
-                            <Text style={[styles.cell, styles.projectHighlight, { flex: 1.5, paddingRight: 8 }]} numberOfLines={2}>{group.project}</Text>
+                            <Text style={[styles.cell, styles.projectHighlight, { flex: 1.5, paddingRight: 8 }]} numberOfLines={2}>
+                              {group.project_id ? `${group.project_id} - ${group.project}` : group.project}
+                            </Text>
                           </View>
                           <View style={{ flex: 5.3, flexDirection: 'column' }}>
                             {group.tasks.map((task, tIndex) => (
