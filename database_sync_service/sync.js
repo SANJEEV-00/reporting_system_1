@@ -165,12 +165,16 @@ async function runSync() {
             .input('Task', sql.NVarChar(sql.MAX), task.Task)
             .input('date', sql.Date, new Date(task.date))
             .input('duration', sql.NVarChar(50), task.duration)
+            .input('Coil_Ref_1', sql.NVarChar(100), task.Coil_Ref_1 || task.coilRef1 || null)
+            .input('Coil_Ref_2', sql.NVarChar(100), task.Coil_Ref_2 || task.coilRef2 || null)
+            .input('Coil_Ref_3', sql.NVarChar(100), task.Coil_Ref_3 || task.coilRef3 || null)
+            .input('Coil_Ref_4', sql.NVarChar(100), task.Coil_Ref_4 || task.coilRef4 || null)
             .input('created_at', sql.DateTimeOffset, task.created_at ? new Date(task.created_at) : new Date())
             .query(`
               IF NOT EXISTS (SELECT 1 FROM [dbo].[project] WHERE id = @id)
               BEGIN
-                  INSERT INTO [dbo].[project] (id, employee_ID, Department, Project_name, Project_Id, Task, date, duration, created_at)
-                  VALUES (@id, @employee_ID, @Department, @Project_name, @Project_Id, @Task, @date, @duration, @created_at);
+                  INSERT INTO [dbo].[project] (id, employee_ID, Department, Project_name, Project_Id, Task, date, duration, Coil_Ref_1, Coil_Ref_2, Coil_Ref_3, Coil_Ref_4, created_at)
+                  VALUES (@id, @employee_ID, @Department, @Project_name, @Project_Id, @Task, @date, @duration, @Coil_Ref_1, @Coil_Ref_2, @Coil_Ref_3, @Coil_Ref_4, @created_at);
               END
             `);
         }

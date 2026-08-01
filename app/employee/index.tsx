@@ -17,7 +17,11 @@ const draftCache: Record<string, {
   selectedProject: string,
   workOrderNo?: string,
   customCustomerName?: string,
-  machineName?: string
+  machineName?: string,
+  coilRef1?: string,
+  coilRef2?: string,
+  coilRef3?: string,
+  coilRef4?: string
 }> = {};
 
 export default function EmployeeDashboard() {
@@ -37,6 +41,13 @@ export default function EmployeeDashboard() {
   const [workOrderNo, setWorkOrderNo] = useState(draft?.workOrderNo || '');
   const [customCustomerName, setCustomCustomerName] = useState(draft?.customCustomerName || '');
   const [machineName, setMachineName] = useState(draft?.machineName || '');
+  
+  // Coil Reference Numbers for Fabrication
+  const [coilRef1, setCoilRef1] = useState(draft?.coilRef1 || '');
+  const [coilRef2, setCoilRef2] = useState(draft?.coilRef2 || '');
+  const [coilRef3, setCoilRef3] = useState(draft?.coilRef3 || '');
+  const [coilRef4, setCoilRef4] = useState(draft?.coilRef4 || '');
+  
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Identify selected project characteristics
@@ -66,10 +77,14 @@ export default function EmployeeDashboard() {
         selectedProject, 
         workOrderNo, 
         customCustomerName, 
-        machineName 
+        machineName,
+        coilRef1,
+        coilRef2,
+        coilRef3,
+        coilRef4
       };
     }
-  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, user?.id]);
+  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, user?.id]);
 
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
 
@@ -152,7 +167,7 @@ export default function EmployeeDashboard() {
     }
   }, [startTime, endTime]);
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (!user || !user.id || !user.employeeId) {
       alert('User not identified. Please login again.');
       return;
@@ -184,6 +199,48 @@ export default function EmployeeDashboard() {
       }
     }
 
+    // Coil Reference validation for Fabrication department
+    const isFabrication = user?.department?.toLowerCase() === 'fabrication';
+    const coilRefs = [coilRef1, coilRef2, coilRef3, coilRef4].map(c => c.trim()).filter(Boolean);
+
+    if (isFabrication) {
+      // 1. Check for local duplicates between inputs in the current form
+      const formDuplicates = coilRefs.filter((item, index) => coilRefs.indexOf(item) !== index);
+      if (formDuplicates.length > 0) {
+        alert(`Duplicate entries: Coil reference number "${formDuplicates[0]}" was entered more than once in the form.`);
+        return;
+      }
+
+      // 2. Check for duplicates against other tasks in the preview list
+      for (let i = 0; i < dailyTasks.length; i++) {
+        if (editingIndex === i) continue; // skip the one we are currently editing
+        const otherTask = dailyTasks[i];
+        const otherRefs = [otherTask.coilRef1, otherTask.coilRef2, otherTask.coilRef3, otherTask.coilRef4].map(c => c?.trim()).filter(Boolean);
+        for (const ref of coilRefs) {
+          if (otherRefs.includes(ref)) {
+            alert(`Duplicate entry: Coil reference number "${ref}" is already added to another task in your preview list.`);
+            return;
+          }
+        }
+      }
+
+      // 3. Query Supabase database to ensure uniqueness across the Fabrication department
+      for (const ref of coilRefs) {
+        const { data, error } = await supabase
+          .from('project')
+          .select('employee_ID, date')
+          .eq('Department', 'Fabrication')
+          .or(`Coil_Ref_1.eq."${ref}",Coil_Ref_2.eq."${ref}",Coil_Ref_3.eq."${ref}",Coil_Ref_4.eq."${ref}"`);
+
+        if (error) {
+          console.error("Coil unique validation failed:", error);
+        } else if (data && data.length > 0) {
+          alert(`Coil Reference No "${ref}" has already been entered in the Fabrication department.\n(Logged by Employee: ${data[0].employee_ID} on ${data[0].date})`);
+          return;
+        }
+      }
+    }
+
     if (!duration.trim()) {
       alert('Please enter a valid duration');
       return;
@@ -193,12 +250,18 @@ export default function EmployeeDashboard() {
     const taskNameToSave = selectedProjectObj ? selectedProjectObj.projectname : 'Task';
     
     let descToSave = description;
+    let coilRefDetails = '';
+    if (isFabrication && coilRefs.length > 0) {
+      const refsText = [coilRef1, coilRef2, coilRef3, coilRef4].map((r, i) => r.trim() ? `Coil Ref ${i+1}: ${r.trim()}` : '').filter(Boolean);
+      coilRefDetails = `\n${refsText.join('\n')}`;
+    }
+
     if (isServiceYear) {
-      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nWork Order No: ${workOrderNo.trim()}\nCustomer: ${customCustomerName.trim()}\n\nTask:\n${description}`;
+      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nWork Order No: ${workOrderNo.trim()}\nCustomer: ${customCustomerName.trim()}${coilRefDetails}\n\nTask:\n${description}`;
     } else if (isMaintenance) {
-      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nMachine Name: ${machineName.trim()}\n\nTask:\n${description}`;
+      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nMachine Name: ${machineName.trim()}${coilRefDetails}\n\nTask:\n${description}`;
     } else if (selectedProjectObj) {
-      descToSave = `Project ID: ${selectedProjectObj.projectid}\nCustomer: ${selectedProjectObj.customername}\n\nTask:\n${description}`;
+      descToSave = `Project ID: ${selectedProjectObj.projectid}\nCustomer: ${selectedProjectObj.customername}${coilRefDetails}\n\nTask:\n${description}`;
     }
 
     let hoursWorked = 0;
@@ -226,6 +289,10 @@ export default function EmployeeDashboard() {
       workOrderNo: isServiceYear ? workOrderNo.trim() : '',
       customCustomerName: isServiceYear ? customCustomerName.trim() : '',
       machineName: isMaintenance ? machineName.trim() : '',
+      coilRef1: isFabrication ? coilRef1.trim() : '',
+      coilRef2: isFabrication ? coilRef2.trim() : '',
+      coilRef3: isFabrication ? coilRef3.trim() : '',
+      coilRef4: isFabrication ? coilRef4.trim() : '',
     };
 
     let newTasks = [];
@@ -251,6 +318,10 @@ export default function EmployeeDashboard() {
     setWorkOrderNo('');
     setCustomCustomerName('');
     setMachineName('');
+    setCoilRef1('');
+    setCoilRef2('');
+    setCoilRef3('');
+    setCoilRef4('');
 
     // Clear draft cache
     if (user?.id) {
@@ -261,7 +332,11 @@ export default function EmployeeDashboard() {
         selectedProject: '',
         workOrderNo: '',
         customCustomerName: '',
-        machineName: ''
+        machineName: '',
+        coilRef1: '',
+        coilRef2: '',
+        coilRef3: '',
+        coilRef4: ''
       };
     }
   };
@@ -276,6 +351,10 @@ export default function EmployeeDashboard() {
     setWorkOrderNo(task.workOrderNo || '');
     setCustomCustomerName(task.customCustomerName || '');
     setMachineName(task.machineName || '');
+    setCoilRef1(task.coilRef1 || '');
+    setCoilRef2(task.coilRef2 || '');
+    setCoilRef3(task.coilRef3 || '');
+    setCoilRef4(task.coilRef4 || '');
     setEditingIndex(index);
   };
 
@@ -288,6 +367,10 @@ export default function EmployeeDashboard() {
     setWorkOrderNo('');
     setCustomCustomerName('');
     setMachineName('');
+    setCoilRef1('');
+    setCoilRef2('');
+    setCoilRef3('');
+    setCoilRef4('');
     setEditingIndex(null);
   };
 
@@ -320,7 +403,11 @@ export default function EmployeeDashboard() {
         Project_Id: task.projectId,
         Task: task.rawDescription,
         date: new Date().toISOString().split('T')[0],
-        duration: task.duration
+        duration: task.duration,
+        Coil_Ref_1: task.coilRef1 || null,
+        Coil_Ref_2: task.coilRef2 || null,
+        Coil_Ref_3: task.coilRef3 || null,
+        Coil_Ref_4: task.coilRef4 || null
       }));
 
       const { error } = await supabase.from('project').insert(inserts);
@@ -412,6 +499,56 @@ export default function EmployeeDashboard() {
             value={machineName}
             onChangeText={setMachineName}
           />
+        </View>
+      )}
+
+      {user?.department?.toLowerCase() === 'fabrication' && (
+        <View style={styles.coilRefsSection}>
+          <Text style={styles.label}>Coil Reference Numbers</Text>
+          <View style={styles.fieldRowHorizontal}>
+            <View style={styles.flexHalf}>
+              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 1</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                placeholder="Coil Ref 1"
+                placeholderTextColor="#9CA3AF"
+                value={coilRef1}
+                onChangeText={setCoilRef1}
+              />
+            </View>
+            <View style={styles.flexHalf}>
+              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 2</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                placeholder="Coil Ref 2"
+                placeholderTextColor="#9CA3AF"
+                value={coilRef2}
+                onChangeText={setCoilRef2}
+              />
+            </View>
+          </View>
+          <View style={[styles.fieldRowHorizontal, { marginTop: 8 }]}>
+            <View style={styles.flexHalf}>
+              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 3</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                placeholder="Coil Ref 3"
+                placeholderTextColor="#9CA3AF"
+                value={coilRef3}
+                onChangeText={setCoilRef3}
+              />
+            </View>
+            <View style={styles.flexHalf}>
+              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 4</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                placeholder="Coil Ref 4"
+                placeholderTextColor="#9CA3AF"
+                value={coilRef4}
+                onChangeText={setCoilRef4}
+              />
+            </View>
+          </View>
         </View>
       )}
 
@@ -876,5 +1013,14 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  coilRefsSection: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 12,
+    marginBottom: 8,
   },
 });

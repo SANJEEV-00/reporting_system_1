@@ -43,6 +43,23 @@ BEGIN
         [Task] NVARCHAR(MAX) NOT NULL,
         [date] DATE NOT NULL,
         [duration] NVARCHAR(50) NOT NULL,
+        [Coil_Ref_1] NVARCHAR(100) NULL,
+        [Coil_Ref_2] NVARCHAR(100) NULL,
+        [Coil_Ref_3] NVARCHAR(100) NULL,
+        [Coil_Ref_4] NVARCHAR(100) NULL,
         [created_at] DATETIMEOFFSET DEFAULT SYSDATETIMEOFFSET()
     );
 END;
+
+-- Ensure columns exist in project table if table was already created
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND type in (N'U'))
+BEGIN
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_1')
+    BEGIN
+        ALTER TABLE [dbo].[project] ADD [Coil_Ref_1] NVARCHAR(100) NULL;
+        ALTER TABLE [dbo].[project] ADD [Coil_Ref_2] NVARCHAR(100) NULL;
+        ALTER TABLE [dbo].[project] ADD [Coil_Ref_3] NVARCHAR(100) NULL;
+        ALTER TABLE [dbo].[project] ADD [Coil_Ref_4] NVARCHAR(100) NULL;
+    END;
+END;
+
