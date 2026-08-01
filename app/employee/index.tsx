@@ -664,11 +664,18 @@ export default function EmployeeDashboard() {
           dailyTasks.map((task, index) => (
             <View style={styles.tableRow} key={index}>
               <Text style={[styles.tableCell, { flex: 0.5, textAlign: 'center' }]}>{index + 1}</Text>
-              <Text style={[styles.tableCell, { flex: 3 }]} numberOfLines={2}>
-                <Text style={{fontWeight: '600'}}>
-                  {task.projectId ? `${task.projectId} - ${task.taskName}` : task.taskName}
-                </Text>: {task.rawDescription}
-              </Text>
+              <View style={[styles.tableCell, { flex: 3, justifyContent: 'center' }]}>
+                <Text style={{ fontSize: 14, color: '#1F2937' }}>
+                  <Text style={{fontWeight: '600'}}>
+                    {task.projectId ? `${task.projectId} - ${task.taskName}` : task.taskName}
+                  </Text>: {task.rawDescription}
+                </Text>
+                {(task.coilRef1 || task.coilRef2 || task.coilRef3 || task.coilRef4) ? (
+                  <Text style={{ fontSize: 12, color: '#0056FF', marginTop: 4, fontWeight: '600' }}>
+                    Coils: {[task.coilRef1, task.coilRef2, task.coilRef3, task.coilRef4].filter(Boolean).join(', ')}
+                  </Text>
+                ) : null}
+              </View>
               <Text style={[styles.tableCell, { flex: 0.8, textAlign: 'center' }]}>{task.duration}</Text>
               <View style={[styles.tableCell, { flex: 1.2, flexDirection: 'row', justifyContent: 'center', gap: 12, alignItems: 'center', borderRightWidth: 0 }]}>
                 <TouchableOpacity onPress={() => handleEditTask(index)}>
