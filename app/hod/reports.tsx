@@ -1316,9 +1316,16 @@ export default function ReportsScreen() {
                   </Text>
                   {tasks.map((task, idx) => (
                     <View key={task.id || idx} style={styles.taskRow}>
-                      <Text style={styles.taskDesc} numberOfLines={2}>
-                        {extractTaskDescription(task.work_description)}
-                      </Text>
+                      <View style={{ flex: 1, paddingRight: 16 }}>
+                        <Text style={{ fontSize: 14, color: Brand.colors.textSecondary }} numberOfLines={2}>
+                          {extractTaskDescription(task.work_description)}
+                        </Text>
+                        {(task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
+                          <Text style={{ fontSize: 11, color: '#0056FF', marginTop: 2, fontWeight: '600' }}>
+                            Coils: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
+                          </Text>
+                        ) : null}
+                      </View>
                       <Text style={styles.taskDate}>
                         {task.report_date}
                       </Text>
@@ -1357,9 +1364,16 @@ export default function ReportsScreen() {
                   <Text style={styles.projectHeading}>{empName}</Text>
                   {tasks.map((task, idx) => (
                     <View key={task.id || idx} style={styles.taskRow}>
-                      <Text style={styles.taskDesc} numberOfLines={2}>
-                        {extractTaskDescription(task.work_description)}
-                      </Text>
+                      <View style={{ flex: 1, paddingRight: 16 }}>
+                        <Text style={{ fontSize: 14, color: Brand.colors.textSecondary }} numberOfLines={2}>
+                          {extractTaskDescription(task.work_description)}
+                        </Text>
+                        {(task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
+                          <Text style={{ fontSize: 11, color: '#0056FF', marginTop: 2, fontWeight: '600' }}>
+                            Coils: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
+                          </Text>
+                        ) : null}
+                      </View>
                       <Text style={styles.taskDate}>
                         {task.report_date}
                       </Text>
@@ -1482,6 +1496,11 @@ export default function ReportsScreen() {
                             <Text style={{ fontSize: 13, color: Brand.colors.textSecondary, marginTop: 2 }} numberOfLines={2}>
                               {extractTaskDescription(r.work_description)}
                             </Text>
+                            {(r.Coil_Ref_1 || r.Coil_Ref_2 || r.Coil_Ref_3 || r.Coil_Ref_4) ? (
+                              <Text style={{ fontSize: 12, color: '#0056FF', fontWeight: '600', marginTop: 4 }}>
+                                Coils: {[r.Coil_Ref_1, r.Coil_Ref_2, r.Coil_Ref_3, r.Coil_Ref_4].filter(Boolean).join(', ')}
+                              </Text>
+                            ) : null}
                             <Text style={{ fontSize: 12, fontWeight: '700', color: Brand.colors.textSecondary, marginTop: 4 }}>
                               Hours Worked: {r.hours_worked} hrs
                             </Text>
@@ -1706,7 +1725,14 @@ export default function ReportsScreen() {
                                 borderBottomColor: '#F3F4F6',
                                 alignItems: 'center'
                               }}>
-                                <Text style={[styles.cell, { flex: 2 }]} numberOfLines={3}>{extractTaskDescription(task.work_description)}</Text>
+                                <View style={{ flex: 2, gap: 4, paddingRight: 8 }}>
+                                  <Text style={styles.cell} numberOfLines={3}>{extractTaskDescription(task.work_description)}</Text>
+                                  {(task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
+                                    <Text style={{ fontSize: 11, color: '#0056FF', fontWeight: '600' }}>
+                                      Coils: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
+                                    </Text>
+                                  ) : null}
+                                </View>
                                 <Text style={[styles.cell, { flex: 1.5 }]}>{task.report_date}</Text>
                                 <Text style={[styles.cell, { flex: 0.8, textAlign: 'center' }]}>{task.hours_worked}</Text>
                                 <View style={{ flex: 1, alignItems: 'flex-end' }}>

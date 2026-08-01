@@ -58,6 +58,10 @@ export async function fetchReports(filters?: ReportFilters): Promise<DailyReport
     const rDate = item.date || item.Date || item.DATE;
     const dur = item.duration || item.Duration || item.DURATION || '0';
     const projId = item.Project_Id || item.Project_ID || item.project_id || item.Project_id || '';
+    const coil1 = item.Coil_Ref_1 || item.coilRef1 || '';
+    const coil2 = item.Coil_Ref_2 || item.coilRef2 || '';
+    const coil3 = item.Coil_Ref_3 || item.coilRef3 || '';
+    const coil4 = item.Coil_Ref_4 || item.coilRef4 || '';
 
     const profile = profiles?.find(p => p.employee_id === empId);
     
@@ -68,6 +72,10 @@ export async function fetchReports(filters?: ReportFilters): Promise<DailyReport
       report_date: rDate,
       task_name: projName,
       project_id: projId,
+      Coil_Ref_1: coil1,
+      Coil_Ref_2: coil2,
+      Coil_Ref_3: coil3,
+      Coil_Ref_4: coil4,
       work_description: taskDesc,
       hours_worked: dur as any, // duration is a string like "02:30"
       completion_percentage: 100,

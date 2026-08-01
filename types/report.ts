@@ -17,6 +17,10 @@ export interface DailyReport {
   report_date: string;
   task_name: string;
   project_id?: string;
+  Coil_Ref_1?: string | null;
+  Coil_Ref_2?: string | null;
+  Coil_Ref_3?: string | null;
+  Coil_Ref_4?: string | null;
   work_description: string;
   hours_worked: number;
   challenges_faced: string | null;

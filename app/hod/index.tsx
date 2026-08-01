@@ -540,20 +540,27 @@ export default function HodDashboard() {
                       return (
                         <View key={row.id || i} style={styles.tableRow}>
                           <Text style={[styles.tableCell, {flex: 1}]}>{row.date || row.Date}</Text>
-                          <Text style={[styles.tableCell, {flex: 2}]} numberOfLines={1}>
-                            {rowProjId ? `${rowProjId} - ${(row.Project_name || row.project_name)}` : (row.Project_name || row.project_name)}
-                          </Text>
-                        <Text style={[styles.tableCell, {flex: 1, textAlign: 'center'}]}>{parseHours(row.duration || row.Duration).toFixed(1)} hrs</Text>
-                        <View style={{flex: 1, alignItems: 'center'}}>
-                          <View style={[styles.statusChip, getStatusColor('submitted')]}>
-                            <Text style={[styles.statusText, getStatusTextColor('submitted')]}>
-                              SUBMITTED
+                          <View style={{flex: 2, justifyContent: 'center'}}>
+                            <Text style={styles.tableCell} numberOfLines={1}>
+                              {rowProjId ? `${rowProjId} - ${(row.Project_name || row.project_name)}` : (row.Project_name || row.project_name)}
                             </Text>
+                            {(row.Coil_Ref_1 || row.Coil_Ref_2 || row.Coil_Ref_3 || row.Coil_Ref_4) ? (
+                              <Text style={{ fontSize: 11, color: '#0056FF', marginTop: 2, fontWeight: '600' }}>
+                                Coils: {[row.Coil_Ref_1, row.Coil_Ref_2, row.Coil_Ref_3, row.Coil_Ref_4].filter(Boolean).join(', ')}
+                              </Text>
+                            ) : null}
+                          </View>
+                          <Text style={[styles.tableCell, {flex: 1, textAlign: 'center'}]}>{parseHours(row.duration || row.Duration).toFixed(1)} hrs</Text>
+                          <View style={{flex: 1, alignItems: 'center'}}>
+                            <View style={[styles.statusChip, getStatusColor('submitted')]}>
+                              <Text style={[styles.statusText, getStatusTextColor('submitted')]}>
+                                SUBMITTED
+                              </Text>
+                            </View>
                           </View>
                         </View>
-                      </View>
-                    );
-                  })
+                      );
+                    })
                 )}
                   {employeeReports.length > 5 && (
                     <TouchableOpacity style={styles.viewAllTasks} onPress={() => router.push('/hod/monthly')}>

@@ -14,6 +14,10 @@ type Task = {
   Task: string;
   date: string;
   duration: string;
+  Coil_Ref_1?: string | null;
+  Coil_Ref_2?: string | null;
+  Coil_Ref_3?: string | null;
+  Coil_Ref_4?: string | null;
 };
 
 export default function HistoryScreen() {
@@ -63,6 +67,17 @@ export default function HistoryScreen() {
         </Text>
       </View>
       <Text style={styles.taskDesc}>{item.Task}</Text>
+      
+      {/* Display Coil Reference Numbers if present */}
+      {(item.Coil_Ref_1 || item.Coil_Ref_2 || item.Coil_Ref_3 || item.Coil_Ref_4) ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+          <Ionicons name="pricetags-outline" size={14} color="#0056FF" />
+          <Text style={{ fontSize: 13, color: '#0056FF', fontWeight: '600' }}>
+            Coils: {[item.Coil_Ref_1, item.Coil_Ref_2, item.Coil_Ref_3, item.Coil_Ref_4].filter(Boolean).join(', ')}
+          </Text>
+        </View>
+      ) : null}
+
       <View style={styles.taskFooter}>
         <View style={styles.footerItem}>
           <Ionicons name="calendar-outline" size={14} color="#6B7280" />
