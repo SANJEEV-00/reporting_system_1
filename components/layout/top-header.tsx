@@ -31,17 +31,17 @@ export function TopHeader({ subtitle }: { subtitle?: string }) {
 
       <View style={{ zIndex: 100 }}>
         <TouchableOpacity style={styles.profileContainer} onPress={() => setDropdownVisible(!dropdownVisible)}>
-          <View style={styles.profileTextContainer}>
-            <Text style={styles.profileName}>
-              {user?.name || 'John Doe'} {user?.employeeId ? `(${user.employeeId})` : ''}
-            </Text>
-            {!isMobile && (
+          {!isMobile && (
+            <View style={styles.profileTextContainer}>
+              <Text style={styles.profileName}>
+                {user?.name || 'John Doe'} {user?.employeeId ? `(${user.employeeId})` : ''}
+              </Text>
               <Text style={styles.profileRole}>
                 {user?.role === 'hod' ? 'Head of Department' : 'Employee'}
                 {user?.department ? ` • ${user.department}` : ''}
               </Text>
-            )}
-          </View>
+            </View>
+          )}
           <View style={styles.avatar}>
             <Ionicons name="person" size={16} color={Brand.colors.primary} />
           </View>
@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 32,
+    width: '100%',
   },
   leftContainer: {
     flex: 1,
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   titleContainer: {
-    flex: 1,
+    flexShrink: 0,
   },
   title: {
     fontSize: 20,

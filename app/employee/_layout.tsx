@@ -32,10 +32,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     backgroundColor: Brand.colors.background,
+    width: '100%',
   },
   mainContent: {
     flex: 1,
     flexDirection: 'column',
+    width: '100%',
   },
   pageContent: {
     flex: 1,

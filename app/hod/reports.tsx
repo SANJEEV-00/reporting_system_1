@@ -1028,23 +1028,40 @@ export default function ReportsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 12 : 16 }]}>
         <View style={{ marginRight: 16 }}>
           <Text style={styles.title}>Employee Reports</Text>
           <Text style={styles.subtitle}>Review reports for {user?.department || 'Unknown Department'}</Text>
         </View>
-        <View style={styles.headerActions}>
-          <View style={styles.filtersInline}>
-            {renderFilter('all', 'All')}
-            {renderFilter('yesterday', 'Yesterday')}
-            {renderFilter('custom', 'Custom Range')}
-            {renderFilter('reports', 'Reports')}
-            {renderFilter('weekly', 'Weekly')}
-            {renderFilter('monthly', 'Monthly')}
-          </View>
+        <View style={[styles.headerActions, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', width: isMobile ? '100%' : 'auto', gap: 12 }]}>
+          {isMobile ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[styles.filtersInline, { paddingRight: 16 }]}
+              style={{ width: '100%', marginBottom: 4 }}
+            >
+              {renderFilter('all', 'All')}
+              {renderFilter('yesterday', 'Yesterday')}
+              {renderFilter('custom', 'Custom Range')}
+              {renderFilter('reports', 'Reports')}
+              {renderFilter('weekly', 'Weekly')}
+              {renderFilter('monthly', 'Monthly')}
+            </ScrollView>
+          ) : (
+            <View style={styles.filtersInline}>
+              {renderFilter('all', 'All')}
+              {renderFilter('yesterday', 'Yesterday')}
+              {renderFilter('custom', 'Custom Range')}
+              {renderFilter('reports', 'Reports')}
+              {renderFilter('weekly', 'Weekly')}
+              {renderFilter('monthly', 'Monthly')}
+            </View>
+          )}
           <Pressable
             style={({ hovered, pressed }) => [
               styles.exportBtn,
+              isMobile && { width: '100%', justifyContent: 'center', height: 44 },
               hovered && styles.exportBtnHovered,
               pressed && { opacity: 0.7 }
             ] as any}
