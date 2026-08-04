@@ -22,6 +22,7 @@ const HOD_NAV_ITEMS = [
   { name: 'Monthly Reports', path: '/hod/monthly', icon: 'calendar-outline' as const },
   { name: 'Client History', path: '/hod/history', icon: 'time-outline' as const },
   { name: 'Projects', path: '/hod/projects', icon: 'folder-open-outline' as const },
+  { name: 'Predefined Tasks', path: '/hod/tasks', icon: 'list-outline' as const },
   { name: 'Settings', path: '/hod/settings', icon: 'settings-outline' as const },
   { name: 'Support', path: '/hod/support', icon: 'headset-outline' as const },
 ];

@@ -37,6 +37,8 @@ export default function EmployeeDashboard() {
   const [departmentProjects, setDepartmentProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState(draft?.selectedProject || '');
 
+  const [predefinedTasks, setPredefinedTasks] = useState<any[]>([]);
+
   // Custom fields for Service Year & Commissioning / Maintenance
   const [workOrderNo, setWorkOrderNo] = useState(draft?.workOrderNo || '');
   const [customCustomerName, setCustomCustomerName] = useState(draft?.customCustomerName || '');
@@ -107,6 +109,7 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     if (user?.department) {
       fetchProjects();
+      fetchPredefinedTasks();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -123,6 +126,21 @@ export default function EmployeeDashboard() {
       setDepartmentProjects(data || []);
     } catch (err) {
       console.error("Failed to load projects", err);
+    }
+  };
+
+  const fetchPredefinedTasks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('predefined_tasks')
+        .select('*')
+        .eq('department', user?.department)
+        .order('task_name', { ascending: true });
+        
+      if (error) throw error;
+      setPredefinedTasks(data || []);
+    } catch (err) {
+      console.error("Failed to load predefined tasks", err);
     }
   };
 
@@ -581,16 +599,31 @@ export default function EmployeeDashboard() {
       {/* Middle Row: Task Description */}
       <View style={styles.fieldRow}>
         <Text style={styles.label}>task Description</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Enter task description..."
-          placeholderTextColor="#9CA3AF"
-          multiline
-          numberOfLines={4}
-          value={description}
-          onChangeText={setDescription}
-          textAlignVertical="top"
-        />
+        {predefinedTasks.length > 0 ? (
+          <View style={[styles.inputWrapper, { padding: 0 }]}>
+            <CustomPicker
+              selectedValue={description}
+              onValueChange={setDescription}
+              style={styles.picker}
+              placeholder="Select Task Description"
+              items={predefinedTasks.map((t) => ({
+                label: t.task_name,
+                value: t.task_name,
+              }))}
+            />
+          </View>
+        ) : (
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Enter task description..."
+            placeholderTextColor="#9CA3AF"
+            multiline
+            numberOfLines={4}
+            value={description}
+            onChangeText={setDescription}
+            textAlignVertical="top"
+          />
+        )}
       </View>
 
       {/* Third Row: Times & Add Button */}
