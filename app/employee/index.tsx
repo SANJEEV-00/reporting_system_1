@@ -504,9 +504,9 @@ export default function EmployeeDashboard() {
 
       {user?.department?.toLowerCase() === 'fabrication' && (
         <View style={styles.coilRefsSection}>
-          <Text style={styles.label}>Coil Reference Numbers</Text>
-          <View style={styles.fieldRowHorizontal}>
-            <View style={styles.flexHalf}>
+          <Text style={[styles.label, { marginBottom: 4 }]}>Coil Reference Numbers</Text>
+          <View style={isDesktop ? styles.fieldRowHorizontal : styles.fieldRowVertical}>
+            <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
               <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 1</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: Brand.colors.white }]}
@@ -516,7 +516,7 @@ export default function EmployeeDashboard() {
                 onChangeText={setCoilRef1}
               />
             </View>
-            <View style={styles.flexHalf}>
+            <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
               <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 2</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: Brand.colors.white }]}
@@ -526,29 +526,55 @@ export default function EmployeeDashboard() {
                 onChangeText={setCoilRef2}
               />
             </View>
+            {!isDesktop && (
+              <>
+                <View style={styles.flexFull}>
+                  <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 3</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                    placeholder="Coil Ref 3"
+                    placeholderTextColor="#9CA3AF"
+                    value={coilRef3}
+                    onChangeText={setCoilRef3}
+                  />
+                </View>
+                <View style={styles.flexFull}>
+                  <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 4</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                    placeholder="Coil Ref 4"
+                    placeholderTextColor="#9CA3AF"
+                    value={coilRef4}
+                    onChangeText={setCoilRef4}
+                  />
+                </View>
+              </>
+            )}
           </View>
-          <View style={[styles.fieldRowHorizontal, { marginTop: 8 }]}>
-            <View style={styles.flexHalf}>
-              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 3</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                placeholder="Coil Ref 3"
-                placeholderTextColor="#9CA3AF"
-                value={coilRef3}
-                onChangeText={setCoilRef3}
-              />
+          {isDesktop && (
+            <View style={[styles.fieldRowHorizontal, { marginTop: 8 }]}>
+              <View style={styles.flexHalf}>
+                <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 3</Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                  placeholder="Coil Ref 3"
+                  placeholderTextColor="#9CA3AF"
+                  value={coilRef3}
+                  onChangeText={setCoilRef3}
+                />
+              </View>
+              <View style={styles.flexHalf}>
+                <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 4</Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: Brand.colors.white }]}
+                  placeholder="Coil Ref 4"
+                  placeholderTextColor="#9CA3AF"
+                  value={coilRef4}
+                  onChangeText={setCoilRef4}
+                />
+              </View>
             </View>
-            <View style={styles.flexHalf}>
-              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 4</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                placeholder="Coil Ref 4"
-                placeholderTextColor="#9CA3AF"
-                value={coilRef4}
-                onChangeText={setCoilRef4}
-              />
-            </View>
-          </View>
+          )}
         </View>
       )}
 
@@ -1029,5 +1055,13 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     gap: 12,
     marginBottom: 8,
+  },
+  fieldRowVertical: {
+    flexDirection: 'column',
+    gap: 12,
+  },
+  flexFull: {
+    width: '100%',
+    gap: 8,
   },
 });
