@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Platform, Alert, ScrollView, Modal, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Platform, Alert, ScrollView, Modal, SafeAreaView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { Picker } from '@react-native-picker/picker';
@@ -10,6 +10,8 @@ import { DailyReport } from '@/types/report';
 
 export default function ProjectsScreen() {
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const [newProject, setNewProject] = useState({
     projectId: '',
     projectName: '',
@@ -169,8 +171,8 @@ export default function ProjectsScreen() {
         </View>
       </View>
       <View style={styles.createProjectCard}>
-        <View style={styles.projectInputRow}>
-          <View style={styles.projectInputGroup}>
+        <View style={isMobile ? { flexDirection: 'column', gap: 12 } : styles.projectInputRow}>
+          <View style={isMobile ? { width: '100%', gap: 6 } : styles.projectInputGroup}>
             <Text style={styles.inputLabel}>Project ID</Text>
             <TextInput
               style={styles.textInput}
@@ -179,7 +181,7 @@ export default function ProjectsScreen() {
               onChangeText={(text) => setNewProject({...newProject, projectId: text})}
             />
           </View>
-          <View style={styles.projectInputGroup}>
+          <View style={isMobile ? { width: '100%', gap: 6 } : styles.projectInputGroup}>
             <Text style={styles.inputLabel}>Project Name</Text>
             <TextInput
               style={styles.textInput}
@@ -188,7 +190,7 @@ export default function ProjectsScreen() {
               onChangeText={(text) => setNewProject({...newProject, projectName: text})}
             />
           </View>
-          <View style={styles.projectInputGroup}>
+          <View style={isMobile ? { width: '100%', gap: 6 } : styles.projectInputGroup}>
             <Text style={styles.inputLabel}>Customer Name</Text>
             <TextInput
               style={styles.textInput}
@@ -197,9 +199,9 @@ export default function ProjectsScreen() {
               onChangeText={(text) => setNewProject({...newProject, customerName: text})}
             />
           </View>
-          <View style={{ justifyContent: 'flex-end', paddingBottom: 2 }}>
+          <View style={isMobile ? { width: '100%', marginTop: 8 } : { justifyContent: 'flex-end', paddingBottom: 2 }}>
             <TouchableOpacity 
-              style={[styles.saveBtn, isSubmittingProject && styles.saveBtnDisabled]} 
+              style={[styles.saveBtn, isMobile && { width: '100%' }, isSubmittingProject && styles.saveBtnDisabled]} 
               onPress={handleCreateProject} 
               disabled={isSubmittingProject}
             >

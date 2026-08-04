@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function ReportsScreen() {
   const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const numColumns = width >= 1200 ? 3 : (width >= 768 ? 2 : 1);
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1189,8 +1190,8 @@ export default function ReportsScreen() {
       {filter === 'custom' && (
         <View style={styles.filtersContainer}>
           <View style={styles.customDateContainer}>
-            <View style={styles.filterRow}>
-              <View style={[styles.dateInputWrapper, { flex: undefined, width: 180, height: 40, paddingHorizontal: 12 }]}>
+            <View style={isMobile ? { flexDirection: 'column', gap: 12, width: '100%' } : styles.filterRow}>
+              <View style={[styles.dateInputWrapper, { flex: undefined, width: isMobile ? '100%' : 180, height: 40, paddingHorizontal: 12 }]}>
                 <Ionicons name="calendar-outline" size={14} color={Brand.colors.textSecondary} />
                 {Platform.OS === 'web' ? (
                   <input
@@ -1219,7 +1220,7 @@ export default function ReportsScreen() {
                   />
                 )}
               </View>
-              <View style={[styles.dateInputWrapper, { flex: undefined, width: 180, height: 40, paddingHorizontal: 12 }]}>
+              <View style={[styles.dateInputWrapper, { flex: undefined, width: isMobile ? '100%' : 180, height: 40, paddingHorizontal: 12 }]}>
                 <Ionicons name="calendar-outline" size={14} color={Brand.colors.textSecondary} />
                 {Platform.OS === 'web' ? (
                   <input
@@ -1251,7 +1252,7 @@ export default function ReportsScreen() {
               <Pressable
                 style={({ hovered, pressed }) => [
                   styles.applyBtnLarge,
-                  { height: 40, paddingHorizontal: 16, borderRadius: 6 },
+                  { height: 40, paddingHorizontal: 16, borderRadius: 6, width: isMobile ? '100%' : 'auto', justifyContent: 'center' },
                   hovered && styles.applyBtnLargeHovered,
                   pressed && { opacity: 0.7 }
                 ] as any}
@@ -1264,13 +1265,13 @@ export default function ReportsScreen() {
                 <Pressable
                   style={({ hovered, pressed }) => [
                     styles.applyBtnLarge,
-                    { height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: '#DC2626', shadowColor: '#DC2626' },
+                    { height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: '#DC2626', shadowColor: '#DC2626', width: isMobile ? '100%' : 'auto', justifyContent: 'center' },
                     hovered && { opacity: 0.9 },
                     pressed && { opacity: 0.7 }
                   ] as any}
                   onPress={handleExportPDF}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <Ionicons name="document-text-outline" size={14} color="#FFF" />
                     <Text style={[styles.applyBtnTextLarge, { fontSize: 14 }]}>Export Consolidated PDF</Text>
                   </View>
@@ -1393,11 +1394,12 @@ export default function ReportsScreen() {
         </ScrollView>
       ) : filter === 'yesterday' ? (
         <View style={{ flex: 1 }}>
-          <View style={[styles.yesterdayTabs, { justifyContent: 'space-between', alignItems: 'center' }]}>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={[styles.yesterdayTabs, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'space-between', gap: isMobile ? 12 : 0 }]}>
+            <View style={{ flexDirection: 'row', gap: 12, width: isMobile ? '100%' : 'auto' }}>
               <Pressable
                 style={({ hovered }) => [
                   styles.yesterdayTab,
+                  { flex: isMobile ? 1 : undefined, alignItems: 'center' },
                   yesterdaySubTab === 'reported' && styles.yesterdayTabActive,
                   hovered && { backgroundColor: '#F3F4F6' }
                 ] as any}
@@ -1410,6 +1412,7 @@ export default function ReportsScreen() {
               <Pressable
                 style={({ hovered }) => [
                   styles.yesterdayTab,
+                  { flex: isMobile ? 1 : undefined, alignItems: 'center' },
                   yesterdaySubTab === 'not_reported' && styles.yesterdayTabActive,
                   hovered && { backgroundColor: '#F3F4F6' }
                 ] as any}
@@ -1422,12 +1425,13 @@ export default function ReportsScreen() {
             </View>
 
             {yesterdaySubTab === 'reported' && (
-              <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flexDirection: 'row', gap: 12, width: isMobile ? '100%' : 'auto', marginTop: isMobile ? 4 : 0, justifyContent: isMobile ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                 {filter === 'yesterday' && (
                   <Pressable
                     style={({ hovered, pressed }) => [
                       styles.actionBtn,
                       styles.emailBtn,
+                      isMobile && { flex: 1, justifyContent: 'center' },
                       hovered && styles.emailBtnHovered,
                       pressed && { opacity: 0.7 }
                     ] as any}
@@ -1441,6 +1445,7 @@ export default function ReportsScreen() {
                   style={({ hovered, pressed }) => [
                     styles.actionBtn,
                     styles.pdfBtn,
+                    isMobile && { flex: 1, justifyContent: 'center' },
                     hovered && styles.pdfBtnHovered,
                     pressed && { opacity: 0.7 }
                   ] as any}

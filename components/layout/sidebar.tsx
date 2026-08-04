@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, usePathname } from 'expo-router';
 import React from 'react';
-import { Pressable, Image, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Image, StyleSheet, Text, View, ScrollView } from 'react-native';
 
 import { Brand } from '@/constants/brand';
 import { useAuth } from '@/contexts/auth-context';
@@ -45,23 +45,29 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
   if (isMobile) {
     return (
       <View style={styles.mobileContainer}>
-        {navItems.map((item) => {
-          const active = isActive(item.path);
-          return (
-            <Link href={item.path as any} key={item.name} asChild>
-              <Pressable style={styles.mobileNavItem}>
-                <Ionicons
-                  name={active && item.icon.endsWith('-outline') ? (item.icon.replace('-outline', '') as any) : item.icon}
-                  size={24}
-                  color={active ? Brand.colors.primary : Brand.colors.textSecondary}
-                />
-                <Text style={StyleSheet.flatten([styles.mobileNavText, active && styles.navTextActive])} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </Pressable>
-            </Link>
-          );
-        })}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.mobileScrollContainer}
+        >
+          {navItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <Link href={item.path as any} key={item.name} asChild>
+                <Pressable style={styles.mobileNavItem}>
+                  <Ionicons
+                    name={active && item.icon.endsWith('-outline') ? (item.icon.replace('-outline', '') as any) : item.icon}
+                    size={24}
+                    color={active ? Brand.colors.primary : Brand.colors.textSecondary}
+                  />
+                  <Text style={StyleSheet.flatten([styles.mobileNavText, active && styles.navTextActive])} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                </Pressable>
+              </Link>
+            );
+          })}
+        </ScrollView>
       </View>
     );
   }
@@ -221,24 +227,26 @@ const styles = StyleSheet.create({
     borderTopColor: Brand.colors.border,
   },
   mobileContainer: {
-    flexDirection: 'row',
     backgroundColor: Brand.colors.card,
     borderTopWidth: 1,
     borderTopColor: Brand.colors.border,
     paddingBottom: 24, // Safe area for modern phones
     paddingTop: 8,
-    paddingHorizontal: 8,
-    justifyContent: 'space-around',
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  mobileScrollContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    gap: 12,
+  },
   mobileNavItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    width: 80, // Equal width for consistent horizontal scrolling
     gap: 4,
   },
   mobileNavText: {

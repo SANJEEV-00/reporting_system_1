@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, ScrollView, useWindowDimensions } from 'react-native';
 
 import { Brand } from '@/constants/brand';
 import { supabase } from '@/lib/supabase';
 
 export default function MonthlyScreen() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalHours: 0,
@@ -226,6 +228,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 16,
     marginBottom: 32,
   },
@@ -236,6 +239,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Brand.colors.border,
     flex: 1,
+    minWidth: 140,
   },
   cardTitle: { fontSize: 13, fontWeight: '600', color: Brand.colors.textSecondary, marginBottom: 8 },
   cardValue: { fontSize: 24, fontWeight: '700', color: Brand.colors.primary, marginBottom: 4 },

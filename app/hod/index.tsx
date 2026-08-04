@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Platform, Alert, SafeAreaView } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Platform, Alert, SafeAreaView, useWindowDimensions } from 'react-native';
 import * as XLSX from 'xlsx-js-style';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
@@ -17,6 +17,9 @@ export default function HodDashboard() {
   const params = useLocalSearchParams();
   
 
+  
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   
   // Department Stats
   const [stats, setStats] = useState({
@@ -412,12 +415,12 @@ export default function HodDashboard() {
       </View>
 
       {/* Employee Search */}
-      <View style={[styles.sectionHeader, { justifyContent: 'space-between' }]}>
+      <View style={[styles.sectionHeader, { justifyContent: 'space-between', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? 12 : 0 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={styles.headerIndicator} />
           <Text style={styles.headerTitle}>EMPLOYEE SEARCH</Text>
         </View>
-        <TouchableOpacity style={[styles.downloadBtn, { backgroundColor: '#F0F9FF', borderColor: '#0056FF' }]} onPress={handleDownloadDepartmentExcel}>
+        <TouchableOpacity style={[styles.downloadBtn, { backgroundColor: '#F0F9FF', borderColor: '#0056FF', width: isMobile ? '100%' : 'auto', justifyContent: 'center' }]} onPress={handleDownloadDepartmentExcel}>
           <Ionicons name="download-outline" size={16} color="#0056FF" />
           <Text style={styles.downloadBtnText}>Overall Report</Text>
         </TouchableOpacity>
@@ -504,18 +507,18 @@ export default function HodDashboard() {
             </View>
 
             <View style={styles.tableCard}>
-              <View style={styles.tableHeaderSection}>
+              <View style={[styles.tableHeaderSection, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'flex-start' }]}>
                 <View>
                   <Text style={styles.metaText}><Text style={styles.metaLabel}>Employee Name</Text> : {searchedEmployee.name}</Text>
                   <Text style={styles.metaText}><Text style={styles.metaLabel}>Department</Text>    : {searchedEmployee.department}</Text>
                   <Text style={styles.metaText}><Text style={styles.metaLabel}>Month</Text>         : <Text style={{color: '#0056FF', fontWeight: '600'}}>{currentMonthName}</Text></Text>
                 </View>
-                <View style={{ gap: 10, alignItems: 'flex-end' }}>
-                  <TouchableOpacity style={styles.downloadBtn} onPress={handleDownloadExcel}>
+                <View style={{ gap: 10, alignItems: isMobile ? 'stretch' : 'flex-end', width: isMobile ? '100%' : 'auto', marginTop: isMobile ? 12 : 0 }}>
+                  <TouchableOpacity style={[styles.downloadBtn, isMobile && { width: '100%', justifyContent: 'center' }]} onPress={handleDownloadExcel}>
                     <Ionicons name="download-outline" size={16} color="#0056FF" />
                     <Text style={styles.downloadBtnText}>Download Report</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteEmployee}>
+                  <TouchableOpacity style={[styles.deleteBtn, isMobile && { width: '100%', justifyContent: 'center' }]} onPress={handleDeleteEmployee}>
                     <Ionicons name="trash-outline" size={16} color="#DC2626" />
                     <Text style={styles.deleteBtnText}>Delete Employee</Text>
                   </TouchableOpacity>

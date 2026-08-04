@@ -27,6 +27,7 @@ export default function EmployeeManagementScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const numColumns = width >= 1200 ? 3 : (width >= 768 ? 2 : 1);
+  const isMobile = width < 768;
   const { user } = useAuth();
   const [employees, setEmployees] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -366,13 +367,13 @@ export default function EmployeeManagementScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
-      <View style={styles.header}>
-        <View>
+      <View style={[styles.header, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 12 : 0 }]}>
+        <View style={{ flex: isMobile ? undefined : 1 }}>
           <Text style={styles.title}>Employee Management</Text>
           <Text style={styles.subtitle}>Review and manage employees for {user?.department}</Text>
         </View>
         {activeTab === 'approved' && (
-          <TouchableOpacity style={styles.addButton} onPress={handleOpenAddModal}>
+          <TouchableOpacity style={[styles.addButton, isMobile && { width: '100%', justifyContent: 'center' }]} onPress={handleOpenAddModal}>
             <Ionicons name="person-add" size={18} color="#FFF" />
             <Text style={styles.addBtnText}>Add Employee</Text>
           </TouchableOpacity>
