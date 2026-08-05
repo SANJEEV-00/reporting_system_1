@@ -89,7 +89,6 @@ export default function ReportsScreen() {
           const { data: projs } = await supabase
             .from('projects')
             .select('projectname, projectid')
-            .eq('department', dept)
             .eq('status', 'onGoing')
             .order('projectname', { ascending: true });
           setDepartmentProjects(projs || []);

@@ -29,13 +29,11 @@ export default function ProjectsScreen() {
   }, [user]);
 
   const fetchProjects = async () => {
-    if (!user?.department) return;
     try {
       setIsLoadingProjects(true);
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('department', user.department)
         .order('status', { ascending: false }) // 'onGoing' comes before 'close' in descending alphabetical order
         .order('datetime', { ascending: false });
       

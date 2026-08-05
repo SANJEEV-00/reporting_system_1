@@ -125,7 +125,6 @@ export default function EmployeeDashboard() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('department', user?.department)
         .eq('status', 'onGoing');
         
       if (error) throw error;

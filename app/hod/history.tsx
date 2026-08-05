@@ -22,11 +22,10 @@ export default function ClientHistoryScreen() {
   const loadHistory = async () => {
     try {
       setLoading(true);
-      // Fetch projects filtered by the HOD's department
+      // Fetch all projects globally
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('department', user?.department)
         .order('id', { ascending: false });
 
       if (error) throw error;
