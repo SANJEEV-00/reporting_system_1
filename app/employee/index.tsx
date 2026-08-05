@@ -21,7 +21,9 @@ const draftCache: Record<string, {
   coilRef1?: string,
   coilRef2?: string,
   coilRef3?: string,
-  coilRef4?: string
+  coilRef4?: string,
+  durationHours?: string,
+  durationMinutes?: string
 }> = {};
 
 export default function EmployeeDashboard() {
@@ -32,6 +34,8 @@ export default function EmployeeDashboard() {
   const [startTime, setStartTime] = useState(draft?.startTime || '09:00');
   const [endTime, setEndTime] = useState(draft?.endTime || '10:00');
   const [duration, setDuration] = useState('');
+  const [durationHours, setDurationHours] = useState(draft?.durationHours || '01');
+  const [durationMinutes, setDurationMinutes] = useState(draft?.durationMinutes || '00');
   const [isSaving, setIsSaving] = useState(false);
 
   const [departmentProjects, setDepartmentProjects] = useState<any[]>([]);
@@ -83,10 +87,12 @@ export default function EmployeeDashboard() {
         coilRef1,
         coilRef2,
         coilRef3,
-        coilRef4
+        coilRef4,
+        durationHours,
+        durationMinutes
       };
     }
-  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, user?.id]);
+  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, durationHours, durationMinutes, user?.id]);
 
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
 
@@ -157,33 +163,32 @@ export default function EmployeeDashboard() {
     return times;
   }, []);
 
-  // Auto-calculate duration only when pickers change
+  const calculateEndTime = (start: string, hh: string, mm: string) => {
+    if (!start || !start.includes(':')) return '';
+    const [sh, sm] = start.split(':').map(Number);
+    const h = Number(hh) || 0;
+    const m = Number(mm) || 0;
+    
+    let totalMins = sh * 60 + sm + h * 60 + m;
+    totalMins = totalMins % (24 * 60); // Wrap around 24 hours
+    
+    const eh = Math.floor(totalMins / 60);
+    const em = totalMins % 60;
+    
+    return `${eh.toString().padStart(2, '0')}:${em.toString().padStart(2, '0')}`;
+  };
+
+  // Auto-calculate End Time and Duration when pickers change
   useEffect(() => {
-    if (startTime && endTime) {
-      const startParts = startTime.split(':');
-      const endParts = endTime.split(':');
-      
-      if (startParts.length === 2 && endParts.length === 2) {
-        const startHours = parseInt(startParts[0], 10);
-        const startMins = parseInt(startParts[1], 10);
-        const endHours = parseInt(endParts[0], 10);
-        const endMins = parseInt(endParts[1], 10);
-        
-        if (!isNaN(startHours) && !isNaN(startMins) && !isNaN(endHours) && !isNaN(endMins)) {
-          let diffMins = (endHours * 60 + endMins) - (startHours * 60 + startMins);
-          if (diffMins < 0) {
-            diffMins += 24 * 60; // Handle overnight shifts
-          }
-          
-          const durHours = Math.floor(diffMins / 60);
-          const durMins = diffMins % 60;
-          setDuration(`${durHours.toString().padStart(2, '0')}:${durMins.toString().padStart(2, '0')}`);
-        }
-      }
+    if (startTime) {
+      const calculatedEnd = calculateEndTime(startTime, durationHours, durationMinutes);
+      setEndTime(calculatedEnd);
+      setDuration(`${durationHours.padStart(2, '0')}:${durationMinutes.padStart(2, '0')}`);
     } else {
+      setEndTime('');
       setDuration('');
     }
-  }, [startTime, endTime]);
+  }, [startTime, durationHours, durationMinutes]);
 
   const handleAddTask = async () => {
     if (!user || !user.id || !user.employeeId) {
@@ -327,11 +332,16 @@ export default function EmployeeDashboard() {
       AsyncStorage.setItem(`@dailyTasks_${user.id}`, JSON.stringify(newTasks)).catch(err => console.error("Failed to save tasks", err));
     }
 
-    // Reset form
+    // Reset form - start time defaults to the calculated end time of the task just added
+    const nextStartTime = endTime || '09:00';
+    const nextEndTime = calculateEndTime(nextStartTime, '01', '00');
+    
     setDescription('');
-    setStartTime('09:00');
-    setEndTime('10:00');
-    setDuration('');
+    setStartTime(nextStartTime);
+    setEndTime(nextEndTime);
+    setDurationHours('01');
+    setDurationMinutes('00');
+    setDuration('01:00');
     setSelectedProject('');
     setWorkOrderNo('');
     setCustomCustomerName('');
@@ -341,12 +351,12 @@ export default function EmployeeDashboard() {
     setCoilRef3('');
     setCoilRef4('');
 
-    // Clear draft cache
+    // Save next draft cache defaults
     if (user?.id) {
       draftCache[user.id] = { 
         description: '', 
-        startTime: '09:00', 
-        endTime: '10:00', 
+        startTime: nextStartTime, 
+        endTime: nextEndTime, 
         selectedProject: '',
         workOrderNo: '',
         customCustomerName: '',
@@ -354,7 +364,9 @@ export default function EmployeeDashboard() {
         coilRef1: '',
         coilRef2: '',
         coilRef3: '',
-        coilRef4: ''
+        coilRef4: '',
+        durationHours: '01',
+        durationMinutes: '00'
       };
     }
   };
@@ -364,7 +376,19 @@ export default function EmployeeDashboard() {
     setDescription(task.rawDescription || '');
     setStartTime(task.startTime || '09:00');
     setEndTime(task.endTime || '10:00');
-    setDuration(task.duration || '');
+    setDuration(task.duration || '01:00');
+
+    // Parse duration to hours and minutes
+    const dur = task.duration || '01:00';
+    if (dur.includes(':')) {
+      const [h, m] = dur.split(':');
+      setDurationHours(h || '01');
+      setDurationMinutes(m || '00');
+    } else {
+      setDurationHours('01');
+      setDurationMinutes('00');
+    }
+
     setSelectedProject(task.projectId || '');
     setWorkOrderNo(task.workOrderNo || '');
     setCustomCustomerName(task.customCustomerName || '');
@@ -378,9 +402,19 @@ export default function EmployeeDashboard() {
 
   const handleCancelEdit = () => {
     setDescription('');
-    setStartTime('09:00');
-    setEndTime('10:00');
-    setDuration('');
+    
+    // Set start time to the end time of the last task in the list (or '09:00' if list is empty)
+    let lastEndTime = '09:00';
+    if (dailyTasks.length > 0) {
+      lastEndTime = dailyTasks[dailyTasks.length - 1].endTime || '09:00';
+    }
+    const nextEndTime = calculateEndTime(lastEndTime, '01', '00');
+
+    setStartTime(lastEndTime);
+    setEndTime(nextEndTime);
+    setDurationHours('01');
+    setDurationMinutes('00');
+    setDuration('01:00');
     setSelectedProject('');
     setWorkOrderNo('');
     setCustomCustomerName('');
@@ -403,6 +437,16 @@ export default function EmployeeDashboard() {
     setDailyTasks(updatedTasks);
     if (user?.id) {
       AsyncStorage.setItem(`@dailyTasks_${user.id}`, JSON.stringify(updatedTasks)).catch(err => console.error("Failed to save tasks", err));
+    }
+
+    // Adjust the start time of the input form to default to the end time of the new last task in the list (if we are not currently editing a task)
+    if (editingIndex === null) {
+      let lastEndTime = '09:00';
+      if (updatedTasks.length > 0) {
+        lastEndTime = updatedTasks[updatedTasks.length - 1].endTime || '09:00';
+      }
+      setStartTime(lastEndTime);
+      setEndTime(calculateEndTime(lastEndTime, durationHours, durationMinutes));
     }
   };
 
@@ -641,25 +685,54 @@ export default function EmployeeDashboard() {
           </View>
         </View>
         <View style={isDesktop ? styles.flexThird : styles.mobileTimeField}>
-          <Text style={styles.label}>End Time</Text>
-          <View style={[styles.inputWrapper, { padding: 0 }]}>
-            <CustomPicker
-              selectedValue={endTime}
-              onValueChange={(val) => setEndTime(val)}
-              style={styles.picker}
-              placeholder="End Time"
-              items={timeOptions.map(time => ({ label: time, value: time }))}
-            />
+          <Text style={styles.label}>Duration</Text>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
+              <CustomPicker
+                selectedValue={durationHours}
+                onValueChange={(val) => setDurationHours(val)}
+                style={styles.picker}
+                placeholder="Hours"
+                items={[
+                  { label: '00 hr', value: '00' },
+                  { label: '01 hr', value: '01' },
+                  { label: '02 hr', value: '02' },
+                  { label: '03 hr', value: '03' },
+                  { label: '04 hr', value: '04' },
+                  { label: '05 hr', value: '05' },
+                  { label: '06 hr', value: '06' },
+                  { label: '07 hr', value: '07' },
+                  { label: '08 hr', value: '08' },
+                  { label: '09 hr', value: '09' },
+                  { label: '10 hr', value: '10' },
+                  { label: '11 hr', value: '11' },
+                  { label: '12 hr', value: '12' },
+                ]}
+              />
+            </View>
+            <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
+              <CustomPicker
+                selectedValue={durationMinutes}
+                onValueChange={(val) => setDurationMinutes(val)}
+                style={styles.picker}
+                placeholder="Minutes"
+                items={[
+                  { label: '00 min', value: '00' },
+                  { label: '15 min', value: '15' },
+                  { label: '30 min', value: '30' },
+                  { label: '45 min', value: '45' },
+                ]}
+              />
+            </View>
           </View>
         </View>
         <View style={isDesktop ? styles.flexThird : styles.mobileTimeField}>
-          <Text style={styles.label}>Duration</Text>
+          <Text style={styles.label}>End Time</Text>
           <TextInput
-            style={[styles.input, styles.durationInput]}
-            placeholder="HH:MM"
-            placeholderTextColor="#9CA3AF"
-            value={duration}
-            onChangeText={setDuration}
+            style={[styles.input, { color: '#6B7280', backgroundColor: '#F3F4F6' }]}
+            placeholder="Auto-calculated"
+            value={endTime}
+            editable={false}
           />
         </View>
         
