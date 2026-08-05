@@ -670,175 +670,109 @@ export default function EmployeeDashboard() {
         )}
       </View>
 
-      {/* Third Row: Times & Add Button */}
-      {isDesktop ? (
-        <View style={[styles.fieldRowHorizontal, { flexWrap: 'nowrap' }]}>
-          <View style={{ flex: 1, gap: 8 }}>
-            <Text style={styles.label}>start time</Text>
-            <View style={[styles.inputWrapper, { padding: 0 }]}>
-              <CustomPicker
-                selectedValue={startTime}
-                onValueChange={(val) => setStartTime(val)}
-                style={styles.picker}
-                placeholder="Start Time"
-                items={timeOptions.map(time => ({ label: time, value: time }))}
-              />
-            </View>
-          </View>
-          <View style={{ flex: 2, gap: 8 }}>
-            <Text style={styles.label}>Duration</Text>
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-              <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
-                <CustomPicker
-                  selectedValue={durationHours}
-                  onValueChange={(val) => setDurationHours(val)}
-                  style={styles.picker}
-                  placeholder="Hours"
-                  items={[
-                    { label: '00 hr', value: '00' },
-                    { label: '01 hr', value: '01' },
-                    { label: '02 hr', value: '02' },
-                    { label: '03 hr', value: '03' },
-                    { label: '04 hr', value: '04' },
-                    { label: '05 hr', value: '05' },
-                    { label: '06 hr', value: '06' },
-                    { label: '07 hr', value: '07' },
-                    { label: '08 hr', value: '08' },
-                    { label: '09 hr', value: '09' },
-                    { label: '10 hr', value: '10' },
-                    { label: '11 hr', value: '11' },
-                    { label: '12 hr', value: '12' },
-                  ]}
-                />
-              </View>
-              <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
-                <CustomPicker
-                  selectedValue={durationMinutes}
-                  onValueChange={(val) => setDurationMinutes(val)}
-                  style={styles.picker}
-                  placeholder="Minutes"
-                  items={[
-                    { label: '00 min', value: '00' },
-                    { label: '15 min', value: '15' },
-                    { label: '30 min', value: '30' },
-                    { label: '45 min', value: '45' },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
-          <View style={{ flex: 1, gap: 8 }}>
-            <Text style={styles.label}>End Time</Text>
-            <TextInput
-              style={[styles.input, { color: '#6B7280', backgroundColor: '#F3F4F6' }]}
-              placeholder="Auto-calculated"
-              value={endTime}
-              editable={false}
+      {/* Third Row: Times */}
+      <View style={{ flexDirection: 'row', gap: 16, width: '100%', marginBottom: 16 }}>
+        <View style={{ flex: 1, gap: 8 }}>
+          <Text style={styles.label}>start time</Text>
+          <View style={[styles.inputWrapper, { padding: 0 }]}>
+            <CustomPicker
+              selectedValue={startTime}
+              onValueChange={(val) => setStartTime(val)}
+              style={styles.picker}
+              placeholder="Start Time"
+              items={timeOptions.map(time => ({ label: time, value: time }))}
             />
           </View>
-          
-          <View style={styles.addButtonWrapper}>
-            {editingIndex !== null ? (
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <TouchableOpacity style={[styles.addButton, { backgroundColor: '#10B981', borderColor: '#10B981' }]} onPress={handleAddTask}>
-                  <Text style={styles.addButtonText}>Update</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.addButton, { backgroundColor: '#6B7280', borderColor: '#6B7280' }]} onPress={handleCancelEdit}>
-                  <Text style={styles.addButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
-                <Text style={styles.addButtonText}>add</Text>
-              </TouchableOpacity>
-            )}
+        </View>
+        <View style={{ flex: 1, gap: 8 }}>
+          <Text style={styles.label}>End Time</Text>
+          <TextInput
+            style={[styles.input, { color: '#6B7280', backgroundColor: '#F3F4F6' }]}
+            placeholder="Auto-calculated"
+            value={endTime}
+            editable={false}
+          />
+        </View>
+      </View>
+
+      {/* Fourth Row: Duration */}
+      <View style={{ gap: 8, width: '100%', marginBottom: 16 }}>
+        <Text style={styles.label}>Duration</Text>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
+            <CustomPicker
+              selectedValue={durationHours}
+              onValueChange={(val) => setDurationHours(val)}
+              style={styles.picker}
+              placeholder="Hours"
+              items={[
+                { label: '00 hr', value: '00' },
+                { label: '01 hr', value: '01' },
+                { label: '02 hr', value: '02' },
+                { label: '03 hr', value: '03' },
+                { label: '04 hr', value: '04' },
+                { label: '05 hr', value: '05' },
+                { label: '06 hr', value: '06' },
+                { label: '07 hr', value: '07' },
+                { label: '08 hr', value: '08' },
+                { label: '09 hr', value: '09' },
+                { label: '10 hr', value: '10' },
+                { label: '11 hr', value: '11' },
+                { label: '12 hr', value: '12' },
+              ]}
+            />
+          </View>
+          <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
+            <CustomPicker
+              selectedValue={durationMinutes}
+              onValueChange={(val) => setDurationMinutes(val)}
+              style={styles.picker}
+              placeholder="Minutes"
+              items={[
+                { label: '00 min', value: '00' },
+                { label: '15 min', value: '15' },
+                { label: '30 min', value: '30' },
+                { label: '45 min', value: '45' },
+              ]}
+            />
           </View>
         </View>
-      ) : (
-        <View style={{ gap: 16 }}>
-          <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-            <View style={{ flex: 1, gap: 8 }}>
-              <Text style={styles.label}>start time</Text>
-              <View style={[styles.inputWrapper, { padding: 0 }]}>
-                <CustomPicker
-                  selectedValue={startTime}
-                  onValueChange={(val) => setStartTime(val)}
-                  style={styles.picker}
-                  placeholder="Start Time"
-                  items={timeOptions.map(time => ({ label: time, value: time }))}
-                />
-              </View>
-            </View>
-            <View style={{ flex: 1, gap: 8 }}>
-              <Text style={styles.label}>End Time</Text>
-              <TextInput
-                style={[styles.input, { color: '#6B7280', backgroundColor: '#F3F4F6' }]}
-                placeholder="Auto-calculated"
-                value={endTime}
-                editable={false}
-              />
-            </View>
-          </View>
-          
-          <View style={{ gap: 8, width: '100%' }}>
-            <Text style={styles.label}>Duration</Text>
-            <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-              <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
-                <CustomPicker
-                  selectedValue={durationHours}
-                  onValueChange={(val) => setDurationHours(val)}
-                  style={styles.picker}
-                  placeholder="Hours"
-                  items={[
-                    { label: '00 hr', value: '00' },
-                    { label: '01 hr', value: '01' },
-                    { label: '02 hr', value: '02' },
-                    { label: '03 hr', value: '03' },
-                    { label: '04 hr', value: '04' },
-                    { label: '05 hr', value: '05' },
-                    { label: '06 hr', value: '06' },
-                    { label: '07 hr', value: '07' },
-                    { label: '08 hr', value: '08' },
-                    { label: '09 hr', value: '09' },
-                    { label: '10 hr', value: '10' },
-                    { label: '11 hr', value: '11' },
-                    { label: '12 hr', value: '12' },
-                  ]}
-                />
-              </View>
-              <View style={[styles.inputWrapper, { flex: 1, padding: 0 }]}>
-                <CustomPicker
-                  selectedValue={durationMinutes}
-                  onValueChange={(val) => setDurationMinutes(val)}
-                  style={styles.picker}
-                  placeholder="Minutes"
-                  items={[
-                    { label: '00 min', value: '00' },
-                    { label: '15 min', value: '15' },
-                    { label: '30 min', value: '30' },
-                    { label: '45 min', value: '45' },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
-          
-          <View style={styles.mobileAddBtnContainer}>
-            {editingIndex !== null ? (
-              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                <TouchableOpacity style={[styles.mobileAddBtn, { flex: 1, backgroundColor: '#10B981' }]} onPress={handleAddTask}>
-                  <Text style={styles.mobileAddBtnText}>Update Task</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.mobileAddBtn, { flex: 1, backgroundColor: '#6B7280' }]} onPress={handleCancelEdit}>
-                  <Text style={styles.mobileAddBtnText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.mobileAddBtn} onPress={handleAddTask}>
-                <Text style={styles.mobileAddBtnText}>Add Task</Text>
+      </View>
+
+      {/* Action Buttons Row */}
+      {isDesktop ? (
+        <View style={{ alignItems: 'flex-end', marginTop: 8 }}>
+          {editingIndex !== null ? (
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity style={[styles.addButton, { backgroundColor: '#10B981', borderColor: '#10B981' }]} onPress={handleAddTask}>
+                <Text style={styles.addButtonText}>Update</Text>
               </TouchableOpacity>
-            )}
-          </View>
+              <TouchableOpacity style={[styles.addButton, { backgroundColor: '#6B7280', borderColor: '#6B7280' }]} onPress={handleCancelEdit}>
+                <Text style={styles.addButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+              <Text style={styles.addButtonText}>add</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
+        <View style={styles.mobileAddBtnContainer}>
+          {editingIndex !== null ? (
+            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+              <TouchableOpacity style={[styles.mobileAddBtn, { flex: 1, backgroundColor: '#10B981' }]} onPress={handleAddTask}>
+                <Text style={styles.mobileAddBtnText}>Update Task</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.mobileAddBtn, { flex: 1, backgroundColor: '#6B7280' }]} onPress={handleCancelEdit}>
+                <Text style={styles.mobileAddBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.mobileAddBtn} onPress={handleAddTask}>
+              <Text style={styles.mobileAddBtnText}>Add Task</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </>
