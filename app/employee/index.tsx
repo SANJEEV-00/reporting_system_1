@@ -31,8 +31,8 @@ export default function EmployeeDashboard() {
   const draft = user?.id ? draftCache[user.id] : null;
 
   const [description, setDescription] = useState(draft?.description || '');
-  const [startTime, setStartTime] = useState(draft?.startTime || '09:00');
-  const [endTime, setEndTime] = useState(draft?.endTime || '10:00');
+  const [startTime, setStartTime] = useState(draft?.startTime || '08:30');
+  const [endTime, setEndTime] = useState(draft?.endTime || '09:30');
   const [duration, setDuration] = useState('');
   const [durationHours, setDurationHours] = useState(draft?.durationHours || '01');
   const [durationMinutes, setDurationMinutes] = useState(draft?.durationMinutes || '00');
@@ -333,7 +333,7 @@ export default function EmployeeDashboard() {
     }
 
     // Reset form - start time defaults to the calculated end time of the task just added
-    const nextStartTime = endTime || '09:00';
+    const nextStartTime = endTime || '08:30';
     const nextEndTime = calculateEndTime(nextStartTime, '01', '00');
     
     setDescription('');
@@ -374,8 +374,8 @@ export default function EmployeeDashboard() {
   const handleEditTask = (index: number) => {
     const task = dailyTasks[index];
     setDescription(task.rawDescription || '');
-    setStartTime(task.startTime || '09:00');
-    setEndTime(task.endTime || '10:00');
+    setStartTime(task.startTime || '08:30');
+    setEndTime(task.endTime || '09:30');
     setDuration(task.duration || '01:00');
 
     // Parse duration to hours and minutes
@@ -403,10 +403,10 @@ export default function EmployeeDashboard() {
   const handleCancelEdit = () => {
     setDescription('');
     
-    // Set start time to the end time of the last task in the list (or '09:00' if list is empty)
-    let lastEndTime = '09:00';
+    // Set start time to the end time of the last task in the list (or '08:30' if list is empty)
+    let lastEndTime = '08:30';
     if (dailyTasks.length > 0) {
-      lastEndTime = dailyTasks[dailyTasks.length - 1].endTime || '09:00';
+      lastEndTime = dailyTasks[dailyTasks.length - 1].endTime || '08:30';
     }
     const nextEndTime = calculateEndTime(lastEndTime, '01', '00');
 
@@ -441,9 +441,9 @@ export default function EmployeeDashboard() {
 
     // Adjust the start time of the input form to default to the end time of the new last task in the list (if we are not currently editing a task)
     if (editingIndex === null) {
-      let lastEndTime = '09:00';
+      let lastEndTime = '08:30';
       if (updatedTasks.length > 0) {
-        lastEndTime = updatedTasks[updatedTasks.length - 1].endTime || '09:00';
+        lastEndTime = updatedTasks[updatedTasks.length - 1].endTime || '08:30';
       }
       setStartTime(lastEndTime);
       setEndTime(calculateEndTime(lastEndTime, durationHours, durationMinutes));
