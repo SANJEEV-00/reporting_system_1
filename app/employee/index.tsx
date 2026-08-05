@@ -150,18 +150,24 @@ export default function EmployeeDashboard() {
     }
   };
 
-  // Generate time options
+  // Generate time options in 5-minute intervals
   const timeOptions = useMemo(() => {
     const times = [];
     for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += 15) {
+      for (let m = 0; m < 60; m += 5) {
         const hh = h.toString().padStart(2, '0');
         const mm = m.toString().padStart(2, '0');
         times.push(`${hh}:${mm}`);
       }
     }
+    
+    if (startTime && !times.includes(startTime)) {
+      times.push(startTime);
+      times.sort();
+    }
+    
     return times;
-  }, []);
+  }, [startTime]);
 
   const calculateEndTime = (start: string, hh: string, mm: string) => {
     if (!start || !start.includes(':')) return '';
@@ -730,9 +736,17 @@ export default function EmployeeDashboard() {
               placeholder="Minutes"
               items={[
                 { label: '00 min', value: '00' },
+                { label: '05 min', value: '05' },
+                { label: '10 min', value: '10' },
                 { label: '15 min', value: '15' },
+                { label: '20 min', value: '20' },
+                { label: '25 min', value: '25' },
                 { label: '30 min', value: '30' },
+                { label: '35 min', value: '35' },
+                { label: '40 min', value: '40' },
                 { label: '45 min', value: '45' },
+                { label: '50 min', value: '50' },
+                { label: '55 min', value: '55' },
               ]}
             />
           </View>
