@@ -32,7 +32,21 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
   const { user } = useAuth();
   const { isCollapsed, toggleSidebar } = useSidebar();
   
-  const navItems = user?.role === 'hod' ? HOD_NAV_ITEMS : EMPLOYEE_NAV_ITEMS;
+  const navItems = React.useMemo(() => {
+    if (user?.role === 'hod') {
+      const items = [...HOD_NAV_ITEMS];
+      if (user?.department === 'Fabrication') {
+        const idx = items.findIndex(item => item.name === 'Settings');
+        if (idx !== -1) {
+          items.splice(idx, 0, { name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any });
+        } else {
+          items.push({ name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any });
+        }
+      }
+      return items;
+    }
+    return EMPLOYEE_NAV_ITEMS;
+  }, [user]);
 
   // Helper to determine if a route is active
   const isActive = (path: string) => {

@@ -23,7 +23,9 @@ const draftCache: Record<string, {
   coilRef3?: string,
   coilRef4?: string,
   durationHours?: string,
-  durationMinutes?: string
+  durationMinutes?: string,
+  selectedComponent?: string,
+  drawingNo?: string
 }> = {};
 
 export default function EmployeeDashboard() {
@@ -42,6 +44,9 @@ export default function EmployeeDashboard() {
   const [selectedProject, setSelectedProject] = useState(draft?.selectedProject || '');
 
   const [predefinedTasks, setPredefinedTasks] = useState<any[]>([]);
+  const [projectComponents, setProjectComponents] = useState<any[]>([]);
+  const [selectedComponent, setSelectedComponent] = useState(draft?.selectedComponent || '');
+  const [drawingNo, setDrawingNo] = useState(draft?.drawingNo || '');
 
   // Custom fields for Service Year & Commissioning / Maintenance
   const [workOrderNo, setWorkOrderNo] = useState(draft?.workOrderNo || '');
@@ -89,10 +94,12 @@ export default function EmployeeDashboard() {
         coilRef3,
         coilRef4,
         durationHours,
-        durationMinutes
+        durationMinutes,
+        selectedComponent,
+        drawingNo
       };
     }
-  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, durationHours, durationMinutes, user?.id]);
+  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, durationHours, durationMinutes, selectedComponent, drawingNo, user?.id]);
 
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
 
@@ -120,6 +127,19 @@ export default function EmployeeDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  useEffect(() => {
+    if (selectedProject && user?.department?.toLowerCase() === 'fabrication') {
+      fetchComponentsForProject(selectedProject);
+      setSelectedComponent('');
+      setDrawingNo('');
+    } else {
+      setProjectComponents([]);
+      setSelectedComponent('');
+      setDrawingNo('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProject, user]);
+
   const fetchProjects = async () => {
     try {
       const { data, error } = await supabase
@@ -146,6 +166,21 @@ export default function EmployeeDashboard() {
       setPredefinedTasks(data || []);
     } catch (err) {
       console.error("Failed to load predefined tasks", err);
+    }
+  };
+
+  const fetchComponentsForProject = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('project_components')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('component_name', { ascending: true });
+        
+      if (error) throw error;
+      setProjectComponents(data || []);
+    } catch (err) {
+      console.error("Failed to load project components", err);
     }
   };
 
@@ -284,12 +319,17 @@ export default function EmployeeDashboard() {
       coilRefDetails = `\n${refsText.join('\n')}`;
     }
 
+    let compDetails = '';
+    if (isFabrication && selectedComponent) {
+      compDetails = `\nComponent: ${selectedComponent}${drawingNo ? ` (DWG: ${drawingNo})` : ''}`;
+    }
+
     if (isServiceYear) {
-      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nWork Order No: ${workOrderNo.trim()}\nCustomer: ${customCustomerName.trim()}${coilRefDetails}\n\nTask:\n${description}`;
+      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nWork Order No: ${workOrderNo.trim()}\nCustomer: ${customCustomerName.trim()}${coilRefDetails}${compDetails}\n\nTask:\n${description}`;
     } else if (isMaintenance) {
-      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nMachine Name: ${machineName.trim()}${coilRefDetails}\n\nTask:\n${description}`;
+      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nMachine Name: ${machineName.trim()}${coilRefDetails}${compDetails}\n\nTask:\n${description}`;
     } else if (selectedProjectObj) {
-      descToSave = `Project ID: ${selectedProjectObj.projectid}\nCustomer: ${selectedProjectObj.customername}${coilRefDetails}\n\nTask:\n${description}`;
+      descToSave = `Project ID: ${selectedProjectObj.projectid}\nCustomer: ${selectedProjectObj.customername}${coilRefDetails}${compDetails}\n\nTask:\n${description}`;
     }
 
     let hoursWorked = 0;
@@ -321,6 +361,8 @@ export default function EmployeeDashboard() {
       coilRef2: isFabrication ? coilRef2.trim() : '',
       coilRef3: isFabrication ? coilRef3.trim() : '',
       coilRef4: isFabrication ? coilRef4.trim() : '',
+      selectedComponent: selectedComponent,
+      drawingNo: drawingNo,
     };
 
     let newTasks = [];
@@ -355,6 +397,8 @@ export default function EmployeeDashboard() {
     setCoilRef2('');
     setCoilRef3('');
     setCoilRef4('');
+    setSelectedComponent('');
+    setDrawingNo('');
 
     // Save next draft cache defaults
     if (user?.id) {
@@ -370,6 +414,8 @@ export default function EmployeeDashboard() {
         coilRef2: '',
         coilRef3: '',
         coilRef4: '',
+        selectedComponent: '',
+        drawingNo: '',
         durationHours: '01',
         durationMinutes: '00'
       };
@@ -402,6 +448,8 @@ export default function EmployeeDashboard() {
     setCoilRef2(task.coilRef2 || '');
     setCoilRef3(task.coilRef3 || '');
     setCoilRef4(task.coilRef4 || '');
+    setSelectedComponent(task.selectedComponent || '');
+    setDrawingNo(task.drawingNo || '');
     setEditingIndex(index);
   };
 
@@ -428,6 +476,8 @@ export default function EmployeeDashboard() {
     setCoilRef2('');
     setCoilRef3('');
     setCoilRef4('');
+    setSelectedComponent('');
+    setDrawingNo('');
     setEditingIndex(null);
   };
 
@@ -468,7 +518,7 @@ export default function EmployeeDashboard() {
         Department: user?.department,
         Project_name: task.taskName,
         Project_Id: task.projectId,
-        Task: task.rawDescription,
+        Task: task.description,
         date: new Date().toISOString().split('T')[0],
         duration: task.duration,
         Coil_Ref_1: task.coilRef1 || null,
@@ -593,6 +643,44 @@ export default function EmployeeDashboard() {
                 onChangeText={setCoilRef2}
               />
             </View>
+          </View>
+        </View>
+      )}
+
+      {/* Fabrication Component & Drawing Section */}
+      {user?.department?.toLowerCase() === 'fabrication' && selectedProject !== '' && (
+        <View style={isDesktop ? styles.fieldRowHorizontal : styles.fieldRowVertical}>
+          <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
+            <Text style={styles.label}>Component Name</Text>
+            <View style={[styles.inputWrapper, { padding: 0 }]}>
+              <CustomPicker
+                selectedValue={selectedComponent}
+                onValueChange={(val) => {
+                  setSelectedComponent(val);
+                  const compObj = projectComponents.find(c => c.component_name === val);
+                  if (compObj) {
+                    setDrawingNo(compObj.drawing_no);
+                  } else {
+                    setDrawingNo('');
+                  }
+                }}
+                style={styles.picker}
+                placeholder="Select Component"
+                items={projectComponents.map(comp => ({
+                  label: comp.component_name,
+                  value: comp.component_name
+                }))}
+              />
+            </View>
+          </View>
+          <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
+            <Text style={styles.label}>Drawing Number</Text>
+            <TextInput
+              style={[styles.input, { color: '#6B7280', backgroundColor: '#F3F4F6' }]}
+              placeholder="Auto-filled drawing no..."
+              value={drawingNo}
+              editable={false}
+            />
           </View>
         </View>
       )}
