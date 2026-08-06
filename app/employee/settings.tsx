@@ -16,6 +16,7 @@ export default function EmployeeSettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
+  const isFabrication = user?.department === 'Fabrication';
   const [form, setForm] = useState({
     name: user?.name || '',
     department: user?.department || '',
@@ -130,45 +131,47 @@ export default function EmployeeSettingsScreen() {
 
         {/* Right Column: Password reset and danger zone */}
         <View style={isDesktop ? styles.rightColumn : undefined}>
-          <View style={[styles.card, { marginTop: 0 }]}>
-            <Text style={styles.sectionTitle}>Reset Password</Text>
-            <Text style={styles.descriptionText}>
-              To change your password, please verify your Employee ID, then enter a new password.
-            </Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Employee ID</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your Employee ID"
-                placeholderTextColor="#9CA3AF"
-                value={resetEmpId}
-                onChangeText={setResetEmpId}
-                autoCapitalize="characters"
-              />
-            </View>
+          {!isFabrication && (
+            <View style={[styles.card, { marginTop: 0 }]}>
+              <Text style={styles.sectionTitle}>Reset Password</Text>
+              <Text style={styles.descriptionText}>
+                To change your password, please verify your Employee ID, then enter a new password.
+              </Text>
+              
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Employee ID</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your Employee ID"
+                  placeholderTextColor="#9CA3AF"
+                  value={resetEmpId}
+                  onChangeText={setResetEmpId}
+                  autoCapitalize="characters"
+                />
+              </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>New Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter new password"
-                placeholderTextColor="#9CA3AF"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-              />
-            </View>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>New Password</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter new password"
+                  placeholderTextColor="#9CA3AF"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                />
+              </View>
 
-            <TouchableOpacity 
-              style={[styles.resetBtn, (resettingPassword || !resetEmpId.trim() || !newPassword.trim()) && styles.saveBtnDisabled]} 
-              onPress={handleResetPassword}
-              disabled={resettingPassword || !resetEmpId.trim() || !newPassword.trim()}
-            >
-              <Ionicons name="lock-closed-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
-              <Text style={styles.saveBtnText}>{resettingPassword ? 'Updating...' : 'Update Password'}</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity 
+                style={[styles.resetBtn, (resettingPassword || !resetEmpId.trim() || !newPassword.trim()) && styles.saveBtnDisabled]} 
+                onPress={handleResetPassword}
+                disabled={resettingPassword || !resetEmpId.trim() || !newPassword.trim()}
+              >
+                <Ionicons name="lock-closed-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={styles.saveBtnText}>{resettingPassword ? 'Updating...' : 'Update Password'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.dangerZone}>
             <Text style={styles.sectionTitle}>Account Actions</Text>

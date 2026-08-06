@@ -593,55 +593,7 @@ export default function EmployeeDashboard() {
                 onChangeText={setCoilRef2}
               />
             </View>
-            {!isDesktop && (
-              <>
-                <View style={styles.flexFull}>
-                  <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 3</Text>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                    placeholder="Coil Ref 3"
-                    placeholderTextColor="#9CA3AF"
-                    value={coilRef3}
-                    onChangeText={setCoilRef3}
-                  />
-                </View>
-                <View style={styles.flexFull}>
-                  <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 4</Text>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                    placeholder="Coil Ref 4"
-                    placeholderTextColor="#9CA3AF"
-                    value={coilRef4}
-                    onChangeText={setCoilRef4}
-                  />
-                </View>
-              </>
-            )}
           </View>
-          {isDesktop && (
-            <View style={[styles.fieldRowHorizontal, { marginTop: 8 }]}>
-              <View style={styles.flexHalf}>
-                <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 3</Text>
-                <TextInput
-                  style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                  placeholder="Coil Ref 3"
-                  placeholderTextColor="#9CA3AF"
-                  value={coilRef3}
-                  onChangeText={setCoilRef3}
-                />
-              </View>
-              <View style={styles.flexHalf}>
-                <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 4</Text>
-                <TextInput
-                  style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                  placeholder="Coil Ref 4"
-                  placeholderTextColor="#9CA3AF"
-                  value={coilRef4}
-                  onChangeText={setCoilRef4}
-                />
-              </View>
-            </View>
-          )}
         </View>
       )}
 
