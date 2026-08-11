@@ -1023,9 +1023,28 @@ export default function EmployeeDashboard() {
                     {task.projectId ? `${task.projectId} - ${task.taskName}` : task.taskName}
                   </Text>: {task.rawDescription}
                 </Text>
-                {(task.coilRef1 || task.coilRef2 || task.coilRef3 || task.coilRef4) ? (
+                {task.selectedComponent ? (
+                  <Text style={{ fontSize: 12, color: '#4B5563', marginTop: 4 }}>
+                    Component: <Text style={{ fontWeight: '600' }}>{task.selectedComponent}</Text>
+                    {task.drawingNo ? ` (DWG: ${task.drawingNo})` : ''}
+                  </Text>
+                ) : null}
+
+                {task.materialType === 'Coil' && task.coilRef1 ? (
                   <Text style={{ fontSize: 12, color: '#0056FF', marginTop: 4, fontWeight: '600' }}>
-                    Coils: {[task.coilRef1, task.coilRef2, task.coilRef3, task.coilRef4].filter(Boolean).join(', ')}
+                    Coil Ref: {task.coilRef1}
+                  </Text>
+                ) : null}
+
+                {task.materialType === 'Rod' && task.selectedRod ? (
+                  <Text style={{ fontSize: 12, color: '#059669', marginTop: 4, fontWeight: '600' }}>
+                    Rod Type: {task.selectedRod} (Qty: {task.rodQty})
+                  </Text>
+                ) : null}
+
+                {task.detailedTaskEntry ? (
+                  <Text style={{ fontSize: 12, color: '#4B5563', marginTop: 4, fontStyle: 'italic' }}>
+                    Details: {task.detailedTaskEntry}
                   </Text>
                 ) : null}
               </View>
