@@ -141,6 +141,9 @@ export default function EmployeeDashboard() {
     if (user?.department) {
       fetchProjects();
       fetchPredefinedTasks();
+      if (user?.department?.toLowerCase() === 'fabrication') {
+        fetchRods();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -149,7 +152,6 @@ export default function EmployeeDashboard() {
     if (selectedProject && user?.department?.toLowerCase() === 'fabrication') {
       fetchComponentsForProject(selectedProject);
       fetchCoilsForProject(selectedProject);
-      fetchRodsForProject(selectedProject);
       setSelectedComponent('');
       setDrawingNo('');
       setCoilRef1('');
@@ -159,7 +161,6 @@ export default function EmployeeDashboard() {
     } else {
       setProjectComponents([]);
       setProjectCoils([]);
-      setProjectRods([]);
       setSelectedComponent('');
       setDrawingNo('');
       setCoilRef1('');
@@ -230,19 +231,18 @@ export default function EmployeeDashboard() {
     }
   };
 
-  const fetchRodsForProject = async (projectId: string) => {
+  const fetchRods = async () => {
     try {
       const { data, error } = await supabase
-        .from('project_rods')
+        .from('fabrication_rods')
         .select('*')
-        .eq('project_id', projectId)
         .eq('status', 'Active')
         .order('rod_type', { ascending: true });
         
       if (error) throw error;
       setProjectRods(data || []);
     } catch (err) {
-      console.error("Failed to load project rods", err);
+      console.error("Failed to load fabrication rods", err);
     }
   };
 

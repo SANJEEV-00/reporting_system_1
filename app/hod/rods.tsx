@@ -21,17 +21,11 @@ import { useAuth } from '@/contexts/auth-context';
 import { supabase } from '@/lib/supabase';
 import { CustomPicker } from '@/components/ui/custom-picker';
 
-interface ProjectRod {
+interface FabricationRod {
   id: number;
-  project_id: string;
   rod_type: string;
   status: string;
   created_at: string;
-}
-
-interface Project {
-  projectid: string;
-  projectname: string;
 }
 
 export default function ProjectRodsScreen() {
@@ -41,19 +35,16 @@ export default function ProjectRodsScreen() {
   const isMobile = width < 768;
 
   // Master lists
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [rods, setRods] = useState<ProjectRod[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [rods, setRods] = useState<FabricationRod[]>([]);
   const [loadingRods, setLoadingRods] = useState(false);
 
   // Selection & forms
-  const [selectedProject, setSelectedProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedRod, setSelectedRod] = useState<ProjectRod | null>(null);
+  const [selectedRod, setSelectedRod] = useState<FabricationRod | null>(null);
 
   // Form states
   const [rodTypeForm, setRodTypeForm] = useState('');
@@ -61,56 +52,23 @@ export default function ProjectRodsScreen() {
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetchProjects();
+    fetchRods();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  useEffect(() => {
-    if (selectedProject) {
-      fetchRods();
-    } else {
-      setRods([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProject]);
-
-  const fetchProjects = async () => {
-    setLoadingProjects(true);
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('projectid, projectname')
-        .eq('status', 'onGoing')
-        .order('projectname', { ascending: true });
-
-      if (error) throw error;
-      setProjects(data || []);
-      if (data && data.length > 0) {
-        setSelectedProject(data[0].projectid);
-      }
-    } catch (err: any) {
-      console.error('Error fetching projects:', err);
-      showAlert('Error', 'Failed to load projects: ' + err.message);
-    } finally {
-      setLoadingProjects(false);
-    }
-  };
-
   const fetchRods = async () => {
-    if (!selectedProject) return;
     setLoadingRods(true);
     try {
       const { data, error } = await supabase
-        .from('project_rods')
+        .from('fabrication_rods')
         .select('*')
-        .eq('project_id', selectedProject)
         .order('rod_type', { ascending: true });
 
       if (error) throw error;
       setRods(data || []);
     } catch (err: any) {
       console.error('Error fetching rods:', err);
-      showAlert('Error', 'Failed to load project rods: ' + err.message);
+      showAlert('Error', 'Failed to load rod types: ' + err.message);
     } finally {
       setLoadingRods(false);
     }
@@ -123,13 +81,10 @@ export default function ProjectRodsScreen() {
       return;
     }
 
-    if (!selectedProject) return;
-
     setActionLoading(true);
     try {
-      const { error } = await supabase.from('project_rods').insert([
+      const { error } = await supabase.from('fabrication_rods').insert([
         {
-          project_id: selectedProject,
           rod_type: trimmedRodType,
           status: statusForm,
         },
@@ -137,7 +92,7 @@ export default function ProjectRodsScreen() {
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('This rod type already exists for this project.');
+          throw new Error('This rod type already exists.');
         }
         throw error;
       }
@@ -166,7 +121,7 @@ export default function ProjectRodsScreen() {
     setActionLoading(true);
     try {
       const { error } = await supabase
-        .from('project_rods')
+        .from('fabrication_rods')
         .update({
           rod_type: trimmedRodType,
           status: statusForm,
@@ -175,7 +130,7 @@ export default function ProjectRodsScreen() {
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('This rod type already exists for this project.');
+          throw new Error('This rod type already exists.');
         }
         throw error;
       }
@@ -193,7 +148,7 @@ export default function ProjectRodsScreen() {
     }
   };
 
-  const handleDelete = (rod: ProjectRod) => {
+  const handleDelete = (rod: FabricationRod) => {
     showAlert(
       'Confirm Delete',
       `Are you sure you want to delete the rod type "${rod.rod_type}"?\nThis won't affect past logged tasks but will remove it from the selector.`,
@@ -205,7 +160,7 @@ export default function ProjectRodsScreen() {
           onPress: async () => {
             try {
               const { error } = await supabase
-                .from('project_rods')
+                .from('fabrication_rods')
                 .delete()
                 .eq('id', rod.id);
               if (error) throw error;
@@ -220,7 +175,7 @@ export default function ProjectRodsScreen() {
     );
   };
 
-  const handleOpenEdit = (rod: ProjectRod) => {
+  const handleOpenEdit = (rod: FabricationRod) => {
     setSelectedRod(rod);
     setRodTypeForm(rod.rod_type);
     setStatusForm(rod.status);
@@ -266,29 +221,12 @@ export default function ProjectRodsScreen() {
       <View style={[styles.header, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 12 : 0 }]}>
         <View style={{ flex: isMobile ? undefined : 1 }}>
           <Text style={styles.title}>Rod Types</Text>
-          <Text style={styles.subtitle}>Configure types of rods for fabrication projects</Text>
+          <Text style={styles.subtitle}>Configure types of rods for fabrication department</Text>
         </View>
         <TouchableOpacity style={[styles.addButton, isMobile && { width: '100%', justifyContent: 'center' }]} onPress={handleOpenAdd}>
           <Ionicons name="add-circle-outline" size={18} color="#FFF" />
           <Text style={styles.addBtnText}>Add Rod Type</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Project Selector */}
-      <View style={styles.projectSelectCard}>
-        <Text style={styles.pickerLabel}>Active Project</Text>
-        {loadingProjects ? (
-          <ActivityIndicator size="small" color={Brand.colors.primary} />
-        ) : (
-          <View style={styles.pickerWrapper}>
-            <CustomPicker
-              selectedValue={selectedProject}
-              onValueChange={setSelectedProject}
-              placeholder="Select a project..."
-              items={projects.map((p) => ({ label: p.projectname, value: p.projectid }))}
-            />
-          </View>
-        )}
       </View>
 
       <View style={styles.searchBox}>
@@ -493,28 +431,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '600',
     fontSize: 14,
-  },
-  projectSelectCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Brand.colors.border,
-    padding: 16,
-    marginBottom: 20,
-  },
-  pickerLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.colors.textSecondary,
-    marginBottom: 8,
-  },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: Brand.colors.border,
-    borderRadius: 8,
-    backgroundColor: '#F9FAFB',
-    height: 48,
-    justifyContent: 'center',
   },
   searchBox: {
     flexDirection: 'row',
