@@ -26,7 +26,10 @@ const draftCache: Record<string, {
   durationMinutes?: string,
   selectedComponent?: string,
   drawingNo?: string,
-  detailedTaskEntry?: string
+  detailedTaskEntry?: string,
+  materialType?: string,
+  selectedRod?: string,
+  rodQty?: string
 }> = {};
 
 export default function EmployeeDashboard() {
@@ -47,9 +50,13 @@ export default function EmployeeDashboard() {
   const [predefinedTasks, setPredefinedTasks] = useState<any[]>([]);
   const [projectComponents, setProjectComponents] = useState<any[]>([]);
   const [projectCoils, setProjectCoils] = useState<any[]>([]);
+  const [projectRods, setProjectRods] = useState<any[]>([]);
   const [selectedComponent, setSelectedComponent] = useState(draft?.selectedComponent || '');
   const [drawingNo, setDrawingNo] = useState(draft?.drawingNo || '');
   const [detailedTaskEntry, setDetailedTaskEntry] = useState(draft?.detailedTaskEntry || '');
+  const [materialType, setMaterialType] = useState(draft?.materialType || '');
+  const [selectedRod, setSelectedRod] = useState(draft?.selectedRod || '');
+  const [rodQty, setRodQty] = useState(draft?.rodQty || '');
 
   // Custom fields for Service Year & Commissioning / Maintenance
   const [workOrderNo, setWorkOrderNo] = useState(draft?.workOrderNo || '');
@@ -104,10 +111,13 @@ export default function EmployeeDashboard() {
         durationMinutes,
         selectedComponent,
         drawingNo,
-        detailedTaskEntry
+        detailedTaskEntry,
+        materialType,
+        selectedRod,
+        rodQty
       };
     }
-  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, durationHours, durationMinutes, selectedComponent, drawingNo, detailedTaskEntry, user?.id]);
+  }, [description, startTime, endTime, selectedProject, workOrderNo, customCustomerName, machineName, coilRef1, coilRef2, coilRef3, coilRef4, durationHours, durationMinutes, selectedComponent, drawingNo, detailedTaskEntry, materialType, selectedRod, rodQty, user?.id]);
 
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
 
@@ -139,15 +149,23 @@ export default function EmployeeDashboard() {
     if (selectedProject && user?.department?.toLowerCase() === 'fabrication') {
       fetchComponentsForProject(selectedProject);
       fetchCoilsForProject(selectedProject);
+      fetchRodsForProject(selectedProject);
       setSelectedComponent('');
       setDrawingNo('');
       setCoilRef1('');
+      setMaterialType('');
+      setSelectedRod('');
+      setRodQty('');
     } else {
       setProjectComponents([]);
       setProjectCoils([]);
+      setProjectRods([]);
       setSelectedComponent('');
       setDrawingNo('');
       setCoilRef1('');
+      setMaterialType('');
+      setSelectedRod('');
+      setRodQty('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProject, user]);
@@ -209,6 +227,22 @@ export default function EmployeeDashboard() {
       setProjectCoils(data || []);
     } catch (err) {
       console.error("Failed to load project coils", err);
+    }
+  };
+
+  const fetchRodsForProject = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('project_rods')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('status', 'Active')
+        .order('rod_type', { ascending: true });
+        
+      if (error) throw error;
+      setProjectRods(data || []);
+    } catch (err) {
+      console.error("Failed to load project rods", err);
     }
   };
 
@@ -294,7 +328,7 @@ export default function EmployeeDashboard() {
     const isFabrication = user?.department?.toLowerCase() === 'fabrication';
     const coilRefs = [coilRef1, coilRef2, coilRef3, coilRef4].map(c => c.trim()).filter(Boolean);
 
-    if (isFabrication) {
+    if (isFabrication && materialType === 'Coil') {
       // 1. Check for local duplicates between inputs in the current form
       const formDuplicates = coilRefs.filter((item, index) => coilRefs.indexOf(item) !== index);
       if (formDuplicates.length > 0) {
@@ -332,6 +366,21 @@ export default function EmployeeDashboard() {
       }
     }
 
+    if (isFabrication && materialType === 'Rod') {
+      if (!selectedRod) {
+        alert('Please select a Rod Type');
+        return;
+      }
+      if (!rodQty.trim()) {
+        alert('Please enter a Rod Quantity');
+        return;
+      }
+      if (isNaN(Number(rodQty)) || Number(rodQty) <= 0) {
+        alert('Please enter a valid numeric Rod Quantity');
+        return;
+      }
+    }
+
     if (!duration.trim()) {
       alert('Please enter a valid duration');
       return;
@@ -342,7 +391,7 @@ export default function EmployeeDashboard() {
     
     let descToSave = description;
     let coilRefDetails = '';
-    if (isFabrication && coilRefs.length > 0) {
+    if (isFabrication && materialType === 'Coil' && coilRefs.length > 0) {
       const refsText = [coilRef1, coilRef2, coilRef3, coilRef4].map((r, i) => r.trim() ? `Coil Ref ${i+1}: ${r.trim()}` : '').filter(Boolean);
       coilRefDetails = `\n${refsText.join('\n')}`;
     }
@@ -352,17 +401,22 @@ export default function EmployeeDashboard() {
       compDetails = `\nComponent: ${selectedComponent}${drawingNo ? ` (DWG: ${drawingNo})` : ''}`;
     }
 
+    let rodDetails = '';
+    if (isFabrication && materialType === 'Rod' && selectedRod) {
+      rodDetails = `\nRod Type: ${selectedRod} (Qty: ${rodQty})`;
+    }
+
     let taskText = description;
     if (isFabrication && detailedTaskEntry.trim()) {
       taskText = `${description}\nDetails: ${detailedTaskEntry.trim()}`;
     }
 
     if (isServiceYear) {
-      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nWork Order No: ${workOrderNo.trim()}\nCustomer: ${customCustomerName.trim()}${coilRefDetails}${compDetails}\n\nTask:\n${taskText}`;
+      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nWork Order No: ${workOrderNo.trim()}\nCustomer: ${customCustomerName.trim()}${coilRefDetails}${compDetails}${rodDetails}\n\nTask:\n${taskText}`;
     } else if (isMaintenance) {
-      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nMachine Name: ${machineName.trim()}${coilRefDetails}${compDetails}\n\nTask:\n${taskText}`;
+      descToSave = `Project ID: ${selectedProjectObj?.projectid}\nMachine Name: ${machineName.trim()}${coilRefDetails}${compDetails}${rodDetails}\n\nTask:\n${taskText}`;
     } else if (selectedProjectObj) {
-      descToSave = `Project ID: ${selectedProjectObj.projectid}\nCustomer: ${selectedProjectObj.customername}${coilRefDetails}${compDetails}\n\nTask:\n${taskText}`;
+      descToSave = `Project ID: ${selectedProjectObj.projectid}\nCustomer: ${selectedProjectObj.customername}${coilRefDetails}${compDetails}${rodDetails}\n\nTask:\n${taskText}`;
     }
 
     let hoursWorked = 0;
@@ -397,6 +451,9 @@ export default function EmployeeDashboard() {
       selectedComponent: selectedComponent,
       drawingNo: drawingNo,
       detailedTaskEntry: isFabrication ? detailedTaskEntry.trim() : '',
+      materialType: isFabrication ? materialType : '',
+      selectedRod: isFabrication ? selectedRod : '',
+      rodQty: isFabrication ? rodQty : '',
     };
 
     let newTasks = [];
@@ -434,6 +491,9 @@ export default function EmployeeDashboard() {
     setSelectedComponent('');
     setDrawingNo('');
     setDetailedTaskEntry('');
+    setMaterialType('');
+    setSelectedRod('');
+    setRodQty('');
 
     // Save next draft cache defaults
     if (user?.id) {
@@ -452,6 +512,9 @@ export default function EmployeeDashboard() {
         selectedComponent: '',
         drawingNo: '',
         detailedTaskEntry: '',
+        materialType: '',
+        selectedRod: '',
+        rodQty: '',
         durationHours: '01',
         durationMinutes: '00'
       };
@@ -487,6 +550,9 @@ export default function EmployeeDashboard() {
     setSelectedComponent(task.selectedComponent || '');
     setDrawingNo(task.drawingNo || '');
     setDetailedTaskEntry(task.detailedTaskEntry || '');
+    setMaterialType(task.materialType || '');
+    setSelectedRod(task.selectedRod || '');
+    setRodQty(task.rodQty || '');
     setEditingIndex(index);
   };
 
@@ -516,6 +582,9 @@ export default function EmployeeDashboard() {
     setSelectedComponent('');
     setDrawingNo('');
     setDetailedTaskEntry('');
+    setMaterialType('');
+    setSelectedRod('');
+    setRodQty('');
     setEditingIndex(null);
   };
 
@@ -659,6 +728,29 @@ export default function EmployeeDashboard() {
 
       {user?.department?.toLowerCase() === 'fabrication' && selectedProject !== '' && (
         <View style={styles.fieldRow}>
+          <Text style={styles.label}>Material Category</Text>
+          <View style={[styles.inputWrapper, { padding: 0 }]}>
+            <CustomPicker
+              selectedValue={materialType}
+              onValueChange={(val) => {
+                setMaterialType(val);
+                setCoilRef1('');
+                setSelectedRod('');
+                setRodQty('');
+              }}
+              style={styles.picker}
+              placeholder="Select Category (Coil / Rod)"
+              items={[
+                { label: 'Coil', value: 'Coil' },
+                { label: 'Rod', value: 'Rod' }
+              ]}
+            />
+          </View>
+        </View>
+      )}
+
+      {user?.department?.toLowerCase() === 'fabrication' && selectedProject !== '' && materialType === 'Coil' && (
+        <View style={styles.fieldRow}>
           <Text style={styles.label}>Coil Reference Number</Text>
           <View style={[styles.inputWrapper, { padding: 0 }]}>
             <CustomPicker
@@ -670,6 +762,37 @@ export default function EmployeeDashboard() {
                 label: c.coil_no,
                 value: c.coil_no,
               }))}
+            />
+          </View>
+        </View>
+      )}
+
+      {user?.department?.toLowerCase() === 'fabrication' && selectedProject !== '' && materialType === 'Rod' && (
+        <View style={isDesktop ? styles.fieldRowHorizontal : styles.fieldRowVertical}>
+          <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
+            <Text style={styles.label}>Rod Type</Text>
+            <View style={[styles.inputWrapper, { padding: 0 }]}>
+              <CustomPicker
+                selectedValue={selectedRod}
+                onValueChange={setSelectedRod}
+                style={styles.picker}
+                placeholder="Select Rod Type"
+                items={projectRods.map((r) => ({
+                  label: r.rod_type,
+                  value: r.rod_type,
+                }))}
+              />
+            </View>
+          </View>
+          <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
+            <Text style={styles.label}>Rod Quantity</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: Brand.colors.white }]}
+              placeholder="Enter quantity (numbers only)"
+              placeholderTextColor="#9CA3AF"
+              value={rodQty}
+              onChangeText={(text) => setRodQty(text.replace(/[^0-9]/g, ''))}
+              keyboardType="numeric"
             />
           </View>
         </View>

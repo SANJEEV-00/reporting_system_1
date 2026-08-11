@@ -40,12 +40,14 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
         if (idx !== -1) {
           items.splice(idx, 0, 
             { name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any },
-            { name: 'Coil References', path: '/hod/coils', icon: 'git-commit-outline' as any }
+            { name: 'Coil References', path: '/hod/coils', icon: 'git-commit-outline' as any },
+            { name: 'Rod Types', path: '/hod/rods', icon: 'git-commit-outline' as any }
           );
         } else {
           items.push(
             { name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any },
-            { name: 'Coil References', path: '/hod/coils', icon: 'git-commit-outline' as any }
+            { name: 'Coil References', path: '/hod/coils', icon: 'git-commit-outline' as any },
+            { name: 'Rod Types', path: '/hod/rods', icon: 'git-commit-outline' as any }
           );
         }
       }
