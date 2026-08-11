@@ -46,6 +46,7 @@ export default function EmployeeDashboard() {
 
   const [predefinedTasks, setPredefinedTasks] = useState<any[]>([]);
   const [projectComponents, setProjectComponents] = useState<any[]>([]);
+  const [projectCoils, setProjectCoils] = useState<any[]>([]);
   const [selectedComponent, setSelectedComponent] = useState(draft?.selectedComponent || '');
   const [drawingNo, setDrawingNo] = useState(draft?.drawingNo || '');
   const [detailedTaskEntry, setDetailedTaskEntry] = useState(draft?.detailedTaskEntry || '');
@@ -137,12 +138,16 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     if (selectedProject && user?.department?.toLowerCase() === 'fabrication') {
       fetchComponentsForProject(selectedProject);
+      fetchCoilsForProject(selectedProject);
       setSelectedComponent('');
       setDrawingNo('');
+      setCoilRef1('');
     } else {
       setProjectComponents([]);
+      setProjectCoils([]);
       setSelectedComponent('');
       setDrawingNo('');
+      setCoilRef1('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProject, user]);
@@ -188,6 +193,22 @@ export default function EmployeeDashboard() {
       setProjectComponents(data || []);
     } catch (err) {
       console.error("Failed to load project components", err);
+    }
+  };
+
+  const fetchCoilsForProject = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('project_coils')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('status', 'Active')
+        .order('coil_no', { ascending: true });
+        
+      if (error) throw error;
+      setProjectCoils(data || []);
+    } catch (err) {
+      console.error("Failed to load project coils", err);
     }
   };
 
@@ -636,30 +657,20 @@ export default function EmployeeDashboard() {
         </View>
       )}
 
-      {user?.department?.toLowerCase() === 'fabrication' && (
-        <View style={styles.coilRefsSection}>
-          <Text style={[styles.label, { marginBottom: 4 }]}>Coil Reference Numbers</Text>
-          <View style={isDesktop ? styles.fieldRowHorizontal : styles.fieldRowVertical}>
-            <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
-              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 1</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                placeholder="Coil Ref 1"
-                placeholderTextColor="#9CA3AF"
-                value={coilRef1}
-                onChangeText={setCoilRef1}
-              />
-            </View>
-            <View style={isDesktop ? styles.flexHalf : styles.flexFull}>
-              <Text style={[styles.label, { fontSize: 12, color: '#4B5563' }]}>Coil Ref No 2</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: Brand.colors.white }]}
-                placeholder="Coil Ref 2"
-                placeholderTextColor="#9CA3AF"
-                value={coilRef2}
-                onChangeText={setCoilRef2}
-              />
-            </View>
+      {user?.department?.toLowerCase() === 'fabrication' && selectedProject !== '' && (
+        <View style={styles.fieldRow}>
+          <Text style={styles.label}>Coil Reference Number</Text>
+          <View style={[styles.inputWrapper, { padding: 0 }]}>
+            <CustomPicker
+              selectedValue={coilRef1}
+              onValueChange={setCoilRef1}
+              style={styles.picker}
+              placeholder="Select Coil Reference"
+              items={projectCoils.map((c) => ({
+                label: c.coil_no,
+                value: c.coil_no,
+              }))}
+            />
           </View>
         </View>
       )}

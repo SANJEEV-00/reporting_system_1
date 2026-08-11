@@ -38,9 +38,15 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
       if (user?.department === 'Fabrication') {
         const idx = items.findIndex(item => item.name === 'Settings');
         if (idx !== -1) {
-          items.splice(idx, 0, { name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any });
+          items.splice(idx, 0, 
+            { name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any },
+            { name: 'Coil References', path: '/hod/coils', icon: 'git-commit-outline' as any }
+          );
         } else {
-          items.push({ name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any });
+          items.push(
+            { name: 'Project Components', path: '/hod/components', icon: 'cube-outline' as any },
+            { name: 'Coil References', path: '/hod/coils', icon: 'git-commit-outline' as any }
+          );
         }
       }
       return items;
