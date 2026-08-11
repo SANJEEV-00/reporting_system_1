@@ -116,7 +116,11 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
         )}
       </View>
 
-      <View style={StyleSheet.flatten([styles.navContainer, isCollapsed && styles.navContainerCollapsed])}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={StyleSheet.flatten([styles.navContainer, isCollapsed && styles.navContainerCollapsed])}
+      >
         {navItems.map((item) => {
           const active = isActive(item.path);
           return (
@@ -144,8 +148,7 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
             </Link>
           );
         })}
-      </View>
-      <View style={styles.spacer} />
+      </ScrollView>
     </View>
   );
 }
