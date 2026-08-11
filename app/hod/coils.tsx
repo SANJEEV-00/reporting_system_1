@@ -21,17 +21,12 @@ import { useAuth } from '@/contexts/auth-context';
 import { supabase } from '@/lib/supabase';
 import { CustomPicker } from '@/components/ui/custom-picker';
 
-interface ProjectCoil {
+interface FabricationCoil {
   id: number;
-  project_id: string;
   coil_no: string;
+  received_date: string | null;
   status: string;
   created_at: string;
-}
-
-interface Project {
-  projectid: string;
-  projectname: string;
 }
 
 export default function ProjectCoilsScreen() {
@@ -41,76 +36,41 @@ export default function ProjectCoilsScreen() {
   const isMobile = width < 768;
 
   // Master lists
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [coils, setCoils] = useState<ProjectCoil[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [coils, setCoils] = useState<FabricationCoil[]>([]);
   const [loadingCoils, setLoadingCoils] = useState(false);
 
   // Selection & forms
-  const [selectedProject, setSelectedProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedCoil, setSelectedCoil] = useState<ProjectCoil | null>(null);
+  const [selectedCoil, setSelectedCoil] = useState<FabricationCoil | null>(null);
 
   // Form states
   const [coilNoForm, setCoilNoForm] = useState('');
+  const [receivedDateForm, setReceivedDateForm] = useState('');
   const [statusForm, setStatusForm] = useState('Active');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetchProjects();
+    fetchCoils();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  useEffect(() => {
-    if (selectedProject) {
-      fetchCoils();
-    } else {
-      setCoils([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProject]);
-
-  const fetchProjects = async () => {
-    setLoadingProjects(true);
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('projectid, projectname')
-        .eq('status', 'onGoing')
-        .order('projectname', { ascending: true });
-
-      if (error) throw error;
-      setProjects(data || []);
-      if (data && data.length > 0) {
-        setSelectedProject(data[0].projectid);
-      }
-    } catch (err: any) {
-      console.error('Error fetching projects:', err);
-      showAlert('Error', 'Failed to load projects: ' + err.message);
-    } finally {
-      setLoadingProjects(false);
-    }
-  };
-
   const fetchCoils = async () => {
-    if (!selectedProject) return;
     setLoadingCoils(true);
     try {
       const { data, error } = await supabase
-        .from('project_coils')
+        .from('fabrication_coils')
         .select('*')
-        .eq('project_id', selectedProject)
         .order('coil_no', { ascending: true });
 
       if (error) throw error;
       setCoils(data || []);
     } catch (err: any) {
       console.error('Error fetching coils:', err);
-      showAlert('Error', 'Failed to load project coils: ' + err.message);
+      showAlert('Error', 'Failed to load coils: ' + err.message);
     } finally {
       setLoadingCoils(false);
     }
@@ -123,21 +83,19 @@ export default function ProjectCoilsScreen() {
       return;
     }
 
-    if (!selectedProject) return;
-
     setActionLoading(true);
     try {
-      const { error } = await supabase.from('project_coils').insert([
+      const { error } = await supabase.from('fabrication_coils').insert([
         {
-          project_id: selectedProject,
           coil_no: trimmedCoilNo,
+          received_date: receivedDateForm.trim() || null,
           status: statusForm,
         },
       ]);
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('This coil reference number already exists for this project.');
+          throw new Error('This coil reference number already exists.');
         }
         throw error;
       }
@@ -145,6 +103,7 @@ export default function ProjectCoilsScreen() {
       showAlert('Success', 'Coil reference added successfully.');
       setIsAddModalOpen(false);
       setCoilNoForm('');
+      setReceivedDateForm('');
       setStatusForm('Active');
       fetchCoils();
     } catch (err: any) {
@@ -166,16 +125,17 @@ export default function ProjectCoilsScreen() {
     setActionLoading(true);
     try {
       const { error } = await supabase
-        .from('project_coils')
+        .from('fabrication_coils')
         .update({
           coil_no: trimmedCoilNo,
+          received_date: receivedDateForm.trim() || null,
           status: statusForm,
         })
         .eq('id', selectedCoil.id);
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('This coil reference number already exists for this project.');
+          throw new Error('This coil reference number already exists.');
         }
         throw error;
       }
@@ -184,6 +144,7 @@ export default function ProjectCoilsScreen() {
       setIsEditModalOpen(false);
       setSelectedCoil(null);
       setCoilNoForm('');
+      setReceivedDateForm('');
       setStatusForm('Active');
       fetchCoils();
     } catch (err: any) {
@@ -193,7 +154,7 @@ export default function ProjectCoilsScreen() {
     }
   };
 
-  const handleDelete = (coil: ProjectCoil) => {
+  const handleDelete = (coil: FabricationCoil) => {
     showAlert(
       'Confirm Delete',
       `Are you sure you want to delete the coil reference "${coil.coil_no}"?\nThis won't affect past logged tasks but will remove it from the selector.`,
@@ -205,7 +166,7 @@ export default function ProjectCoilsScreen() {
           onPress: async () => {
             try {
               const { error } = await supabase
-                .from('project_coils')
+                .from('fabrication_coils')
                 .delete()
                 .eq('id', coil.id);
               if (error) throw error;
@@ -220,15 +181,17 @@ export default function ProjectCoilsScreen() {
     );
   };
 
-  const handleOpenEdit = (coil: ProjectCoil) => {
+  const handleOpenEdit = (coil: FabricationCoil) => {
     setSelectedCoil(coil);
     setCoilNoForm(coil.coil_no);
+    setReceivedDateForm(coil.received_date || '');
     setStatusForm(coil.status);
     setIsEditModalOpen(true);
   };
 
   const handleOpenAdd = () => {
     setCoilNoForm('');
+    setReceivedDateForm('');
     setStatusForm('Active');
     setIsAddModalOpen(true);
   };
@@ -258,7 +221,8 @@ export default function ProjectCoilsScreen() {
 
   const filteredCoils = coils.filter((c) =>
     c.coil_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.status.toLowerCase().includes(searchQuery.toLowerCase())
+    c.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.received_date && c.received_date.includes(searchQuery))
   );
 
   return (
@@ -266,29 +230,12 @@ export default function ProjectCoilsScreen() {
       <View style={[styles.header, { flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 12 : 0 }]}>
         <View style={{ flex: isMobile ? undefined : 1 }}>
           <Text style={styles.title}>Coil References</Text>
-          <Text style={styles.subtitle}>Configure coil reference numbers for fabrication projects</Text>
+          <Text style={styles.subtitle}>Configure coil reference numbers for fabrication department</Text>
         </View>
         <TouchableOpacity style={[styles.addButton, isMobile && { width: '100%', justifyContent: 'center' }]} onPress={handleOpenAdd}>
           <Ionicons name="add-circle-outline" size={18} color="#FFF" />
           <Text style={styles.addBtnText}>Add Coil Ref</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Project Selector */}
-      <View style={styles.projectSelectCard}>
-        <Text style={styles.pickerLabel}>Active Project</Text>
-        {loadingProjects ? (
-          <ActivityIndicator size="small" color={Brand.colors.primary} />
-        ) : (
-          <View style={styles.pickerWrapper}>
-            <CustomPicker
-              selectedValue={selectedProject}
-              onValueChange={setSelectedProject}
-              placeholder="Select a project..."
-              items={projects.map((p) => ({ label: p.projectname, value: p.projectid }))}
-            />
-          </View>
-        )}
       </View>
 
       <View style={styles.searchBox}>
@@ -323,6 +270,12 @@ export default function ProjectCoilsScreen() {
                   <Ionicons name="git-commit-outline" size={20} color={Brand.colors.primary} style={{ marginRight: 12 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.coilNo}>{item.coil_no}</Text>
+                    {item.received_date ? (
+                      <View style={styles.dateRow}>
+                        <Ionicons name="calendar-outline" size={13} color={Brand.colors.textSecondary} style={{ marginRight: 4 }} />
+                        <Text style={styles.dateText}>Received: {item.received_date}</Text>
+                      </View>
+                    ) : null}
                     <View style={styles.badgeContainer}>
                       <View style={[styles.badge, item.status === 'Active' ? styles.badgeActive : styles.badgeInactive]}>
                         <Text style={[styles.badgeText, item.status === 'Active' ? styles.badgeActiveText : styles.badgeInactiveText]}>
@@ -367,6 +320,38 @@ export default function ProjectCoilsScreen() {
                   onChangeText={setCoilNoForm}
                   autoFocus
                 />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Received Date</Text>
+                <View style={styles.datePickerWrapper}>
+                  {Platform.OS === 'web' ? (
+                    <input
+                      type="date"
+                      value={receivedDateForm}
+                      onChange={(e) => setReceivedDateForm(e.target.value)}
+                      style={{
+                        flex: 1,
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 15,
+                        fontFamily: 'inherit',
+                        color: Brand.colors.text,
+                        backgroundColor: 'transparent',
+                        height: '100%',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  ) : (
+                    <TextInput
+                      style={{ flex: 1, fontSize: 15, color: Brand.colors.text, height: '100%' }}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#9CA3AF"
+                      value={receivedDateForm}
+                      onChangeText={setReceivedDateForm}
+                    />
+                  )}
+                </View>
               </View>
 
               <View style={styles.formGroup}>
@@ -421,6 +406,38 @@ export default function ProjectCoilsScreen() {
                   onChangeText={setCoilNoForm}
                   autoFocus
                 />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Received Date</Text>
+                <View style={styles.datePickerWrapper}>
+                  {Platform.OS === 'web' ? (
+                    <input
+                      type="date"
+                      value={receivedDateForm}
+                      onChange={(e) => setReceivedDateForm(e.target.value)}
+                      style={{
+                        flex: 1,
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 15,
+                        fontFamily: 'inherit',
+                        color: Brand.colors.text,
+                        backgroundColor: 'transparent',
+                        height: '100%',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  ) : (
+                    <TextInput
+                      style={{ flex: 1, fontSize: 15, color: Brand.colors.text, height: '100%' }}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#9CA3AF"
+                      value={receivedDateForm}
+                      onChangeText={setReceivedDateForm}
+                    />
+                  )}
+                </View>
               </View>
 
               <View style={styles.formGroup}>
@@ -494,28 +511,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-  projectSelectCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Brand.colors.border,
-    padding: 16,
-    marginBottom: 20,
-  },
-  pickerLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.colors.textSecondary,
-    marginBottom: 8,
-  },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: Brand.colors.border,
-    borderRadius: 8,
-    backgroundColor: '#F9FAFB',
-    height: 48,
-    justifyContent: 'center',
-  },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -583,6 +578,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Brand.colors.text,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  dateText: {
+    fontSize: 13,
+    color: Brand.colors.textSecondary,
   },
   badgeContainer: {
     flexDirection: 'row',
@@ -671,6 +675,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Brand.colors.text,
     backgroundColor: '#F9FAFB',
+  },
+  datePickerWrapper: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: Brand.colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
   },
   pickerBorder: {
     borderWidth: 1,

@@ -143,6 +143,7 @@ export default function EmployeeDashboard() {
       fetchPredefinedTasks();
       if (user?.department?.toLowerCase() === 'fabrication') {
         fetchRods();
+        fetchCoils();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,7 +152,6 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     if (selectedProject && user?.department?.toLowerCase() === 'fabrication') {
       fetchComponentsForProject(selectedProject);
-      fetchCoilsForProject(selectedProject);
       setSelectedComponent('');
       setDrawingNo('');
       setCoilRef1('');
@@ -160,7 +160,6 @@ export default function EmployeeDashboard() {
       setRodQty('');
     } else {
       setProjectComponents([]);
-      setProjectCoils([]);
       setSelectedComponent('');
       setDrawingNo('');
       setCoilRef1('');
@@ -215,19 +214,18 @@ export default function EmployeeDashboard() {
     }
   };
 
-  const fetchCoilsForProject = async (projectId: string) => {
+  const fetchCoils = async () => {
     try {
       const { data, error } = await supabase
-        .from('project_coils')
+        .from('fabrication_coils')
         .select('*')
-        .eq('project_id', projectId)
         .eq('status', 'Active')
         .order('coil_no', { ascending: true });
         
       if (error) throw error;
       setProjectCoils(data || []);
     } catch (err) {
-      console.error("Failed to load project coils", err);
+      console.error("Failed to load fabrication coils", err);
     }
   };
 
