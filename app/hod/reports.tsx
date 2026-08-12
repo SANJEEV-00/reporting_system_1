@@ -282,7 +282,7 @@ export default function ReportsScreen() {
       // Try loading from HTTPS CDNs first (essential for HTTPS vercel deployments)
       const jsPdfUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
       const autotableUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js";
-      const ttfUrl = "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansTamil/NotoSansTamil-Regular.ttf";
+      const ttfUrl = "https://cdn.jsdelivr.net/gh/virtualvinodh/aksharamukha-fonts@master/MuktaMalar-Regular.ttf";
 
       const loadFontAndResolve = async () => {
         try {
@@ -299,7 +299,7 @@ export default function ReportsScreen() {
             }
           }
         } catch (err) {
-          console.warn("Could not load Noto Sans Tamil font, falling back to default Helvetica.", err);
+          console.warn("Could not load Mukta Malar bilingual font, falling back to default Helvetica.", err);
         }
         resolve((window as any).jspdf);
       };
@@ -352,11 +352,11 @@ export default function ReportsScreen() {
 
     const doc = new jsPDFConstructor();
 
-    // Register Tamil font if loaded successfully
+    // Register bilingual Latin & Tamil font if loaded successfully
     if (tamilFontBase64) {
-      doc.addFileToVFS("NotoSansTamil.ttf", tamilFontBase64);
-      doc.addFont("NotoSansTamil.ttf", "NotoSansTamil", "normal");
-      doc.setFont("NotoSansTamil", "normal");
+      doc.addFileToVFS("MuktaMalar.ttf", tamilFontBase64);
+      doc.addFont("MuktaMalar.ttf", "MuktaMalar", "normal");
+      doc.setFont("MuktaMalar", "normal");
     }
 
     const dateStr = getCurrentDateRangeStr();
@@ -365,7 +365,7 @@ export default function ReportsScreen() {
     doc.setFontSize(20);
     doc.setTextColor(30, 58, 138); // Dark blue
     if (tamilFontBase64) {
-      doc.setFont("NotoSansTamil", "normal");
+      doc.setFont("MuktaMalar", "normal");
     } else {
       doc.setFont("helvetica", "bold");
     }
@@ -436,18 +436,18 @@ export default function ReportsScreen() {
           fillColor: [254, 242, 242], 
           textColor: [220, 38, 38], 
           fontStyle: tamilFontBase64 ? 'normal' : 'bold',
-          font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica',
+          font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
           halign: 'left',
           fontSize: 8.5
         },
         bodyStyles: { 
           textColor: [220, 38, 38],
-          font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica',
+          font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
           fontSize: 8.5
         },
         styles: { 
           cellPadding: 2,
-          font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica'
+          font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
         },
         columnStyles: {
           0: { cellWidth: 30.33 },
@@ -518,7 +518,7 @@ export default function ReportsScreen() {
         fillColor: [59, 130, 246], 
         textColor: [255, 255, 255], 
         fontStyle: tamilFontBase64 ? 'normal' : 'bold',
-        font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica'
+        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
       },
       styles: { 
         fontSize: 9, 
@@ -526,7 +526,7 @@ export default function ReportsScreen() {
         overflow: 'linebreak', 
         lineColor: [0, 0, 0], 
         lineWidth: 0.15,
-        font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica'
+        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
       },
       columnStyles: {
         0: { cellWidth: 14 },
