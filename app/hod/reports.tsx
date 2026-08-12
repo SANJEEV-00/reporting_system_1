@@ -386,22 +386,34 @@ export default function ReportsScreen() {
     const totalEmployees = yesterdayReported.length + yesterdayNotReported.length;
 
     doc.setFontSize(10.5);
-    doc.setTextColor(75, 85, 99); // Grey
-    
-    doc.setFont("helvetica", "bold");
-    doc.text("Department:", 14, 40);
-    doc.setFont("helvetica", "normal");
-    doc.text(user?.department || 'Unknown Department', 34, 40);
+    doc.setTextColor(0, 0, 0); // Black for maximum legibility
 
-    doc.setFont("helvetica", "bold");
-    doc.text("Reported Employees:", 78, 40);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${yesterdayReported.length}/${totalEmployees}`, 115, 40);
+    // Column 1: Department (printed dynamically using getTextWidth to prevent overlapping)
+    const labelDept = "Department: ";
+    const valDept = user?.department || 'Unknown Department';
+    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "bold");
+    doc.text(labelDept, 14, 40);
+    const wDept = doc.getTextWidth(labelDept);
+    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "normal");
+    doc.text(valDept, 14 + wDept, 40);
 
-    doc.setFont("helvetica", "bold");
-    doc.text("Backlogged Employees:", 135, 40);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${yesterdayNotReported.length}/${totalEmployees}`, 174, 40);
+    // Column 2: Reported Employees
+    const labelRep = "Reported Employees: ";
+    const valRep = `${yesterdayReported.length}/${totalEmployees}`;
+    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "bold");
+    doc.text(labelRep, 76, 40);
+    const wRep = doc.getTextWidth(labelRep);
+    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "normal");
+    doc.text(valRep, 76 + wRep, 40);
+
+    // Column 3: Backlogged Employees
+    const labelBack = "Backlogged Employees: ";
+    const valBack = `${yesterdayNotReported.length}/${totalEmployees}`;
+    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "bold");
+    doc.text(labelBack, 134, 40);
+    const wBack = doc.getTextWidth(labelBack);
+    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "normal");
+    doc.text(valBack, 134 + wBack, 40);
 
     doc.line(14, 46, 196, 46);
 
@@ -415,21 +427,19 @@ export default function ReportsScreen() {
     if (sortedBacklog.length > 0 && filter !== 'custom') {
       const backlogNames = sortedBacklog.map(item => `- ${item.employee?.name || 'Unknown'}`);
       
+      // Organize into 3 columns (increased space per column to prevent text wrapping/misalignment)
       const backlogTableBody: any[] = [];
-      for (let i = 0; i < backlogNames.length; i += 6) {
+      for (let i = 0; i < backlogNames.length; i += 3) {
         backlogTableBody.push([
           backlogNames[i] || '',
           backlogNames[i + 1] || '',
-          backlogNames[i + 2] || '',
-          backlogNames[i + 3] || '',
-          backlogNames[i + 4] || '',
-          backlogNames[i + 5] || ''
+          backlogNames[i + 2] || ''
         ]);
       }
 
       (doc as any).autoTable({
         startY: 48,
-        head: [[{ content: 'PENDING SUBMISSIONS (NOT REPORTED EMPLOYEES)', colSpan: 6 }]],
+        head: [[{ content: 'PENDING SUBMISSIONS (NOT REPORTED EMPLOYEES)', colSpan: 3 }]],
         body: backlogTableBody,
         theme: 'plain',
         headStyles: { 
@@ -438,24 +448,21 @@ export default function ReportsScreen() {
           fontStyle: tamilFontBase64 ? 'normal' : 'bold',
           font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
           halign: 'left',
-          fontSize: 10
+          fontSize: 11
         },
         bodyStyles: { 
           textColor: [220, 38, 38],
           font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
-          fontSize: 10
+          fontSize: 11
         },
         styles: { 
-          cellPadding: 2,
+          cellPadding: 3,
           font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
         },
         columnStyles: {
-          0: { cellWidth: 30.33 },
-          1: { cellWidth: 30.33 },
-          2: { cellWidth: 30.33 },
-          3: { cellWidth: 30.33 },
-          4: { cellWidth: 30.33 },
-          5: { cellWidth: 30.33 }
+          0: { cellWidth: 60.6 },
+          1: { cellWidth: 60.6 },
+          2: { cellWidth: 60.6 }
         }
       });
       
@@ -527,7 +534,8 @@ export default function ReportsScreen() {
         overflow: 'linebreak', 
         lineColor: [0, 0, 0], 
         lineWidth: 0.15,
-        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
+        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
+        textColor: [0, 0, 0]
       },
       columnStyles: {
         0: { cellWidth: 14 },
