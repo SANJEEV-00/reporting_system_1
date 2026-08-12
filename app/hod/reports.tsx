@@ -351,6 +351,7 @@ export default function ReportsScreen() {
     }
 
     const doc = new jsPDFConstructor();
+    doc.setLineHeightFactor(1.5);
 
     // Register bilingual Latin & Tamil font if loaded successfully
     if (tamilFontBase64) {
@@ -473,11 +474,11 @@ export default function ReportsScreen() {
     const tableBody: any[] = [];
     let sNo = 1;
     yesterdayReported.forEach((group) => {
-      const empName = group.employee.name;
-      const empId = group.employee.employee_id;
+      const empName = cleanText(group.employee.name);
+      const empId = cleanText(group.employee.employee_id);
 
       // Group projects
-      const projectsText = group.reports.map(r => `- ${r.project_id ? `${r.project_id} - ` : ''}${r.task_name}`).join('\n\n');
+      const projectsText = group.reports.map(r => cleanText(`- ${r.project_id ? `${r.project_id} - ` : ''}${r.task_name}`)).join('\n\n');
 
       // Group task descriptions
       const tasksText = group.reports.map(r => {
@@ -500,7 +501,7 @@ export default function ReportsScreen() {
         }
         
         const projHeader = r.project_id ? `${r.project_id} - ${r.task_name}` : r.task_name;
-        return `[${projHeader}]${extraInfo}\n${desc}`;
+        return cleanText(`[${projHeader}]${extraInfo}\n${desc}`);
       }).join('\n\n');
 
       // Group durations
@@ -526,16 +527,17 @@ export default function ReportsScreen() {
         textColor: [255, 255, 255], 
         fontStyle: tamilFontBase64 ? 'normal' : 'bold',
         font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
-        fontSize: 11
+        fontSize: 11.5
       },
       styles: { 
-        fontSize: 10.5, 
+        fontSize: 11, 
         cellPadding: 4, 
         overflow: 'linebreak', 
         lineColor: [0, 0, 0], 
         lineWidth: 0.15,
         font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
-        textColor: [0, 0, 0]
+        textColor: [0, 0, 0],
+        lineHeight: 1.5
       },
       columnStyles: {
         0: { cellWidth: 14 },
@@ -872,8 +874,21 @@ export default function ReportsScreen() {
   const cleanText = (str: string): string => {
     if (!str) return '';
     
+    // Replace superscript and subscript numbers with standard numbers (fixes tiny digit/subscript display issues)
+    let cleaned = str
+      .replace(/[\u2070\u2080]/g, '0')
+      .replace(/[\u00B9\u2081]/g, '1')
+      .replace(/[\u00B2\u2082]/g, '2')
+      .replace(/[\u00B3\u2083]/g, '3')
+      .replace(/[\u2074\u2084]/g, '4')
+      .replace(/[\u2075\u2085]/g, '5')
+      .replace(/[\u2076\u2086]/g, '6')
+      .replace(/[\u2077\u2087]/g, '7')
+      .replace(/[\u2078\u2088]/g, '8')
+      .replace(/[\u2079\u2089]/g, '9');
+
     // Replace common non-ASCII characters with safe alternatives
-    let sanitized = str
+    let sanitized = cleaned
       .replace(/[●•\u25CF\u2022]/g, '-')
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
