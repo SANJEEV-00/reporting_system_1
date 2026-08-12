@@ -21,30 +21,37 @@ serve(async (req) => {
       throw new Error("Missing pdfBase64 attachment content.");
     }
 
-    // Get Resend API Key from Supabase secrets
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY is not configured in Supabase secrets.");
+    // Get Brevo API Key from Supabase secrets
+    const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+    if (!brevoApiKey) {
+      throw new Error("BREVO_API_KEY is not configured in Supabase secrets.");
     }
 
-    // Default sender (onboarding@resend.dev works for testing to your own account email)
-    const sender = Deno.env.get("SENDER_EMAIL") || "onboarding@resend.dev";
+    // Default sender (their Gmail address)
+    const senderEmail = Deno.env.get("SENDER_EMAIL") || "sanjeev520212@gmail.com";
 
-    // Call Resend's HTTPS API (fully allowed in Supabase sandbox)
-    const res = await fetch("https://api.resend.com/emails", {
+    // Format recipients for Brevo API: [{ email: "..." }, { email: "..." }]
+    const toField = recipients.map(email => ({ email: email.trim() }));
+
+    // Call Brevo's HTTPS transactional mail API
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${resendApiKey}`,
+        "accept": "application/json",
+        "api-key": brevoApiKey,
       },
       body: JSON.stringify({
-        from: `Barani Reports <${sender}>`,
-        to: recipients,
+        sender: {
+          name: "Barani Reports",
+          email: senderEmail
+        },
+        to: toField,
         subject: subject || `Consolidated Work Report (${date})`,
-        html: `<p>${(body || "Please find attached the consolidated work report.").replace(/\n/g, "<br>")}</p>`,
-        attachments: [
+        htmlContent: `<p>${(body || "Please find attached the consolidated work report.").replace(/\n/g, "<br>")}</p>`,
+        attachment: [
           {
-            filename: `Consolidated_Report_${String(date).replace(/ /g, "_")}.pdf`,
+            name: `Consolidated_Report_${String(date).replace(/ /g, "_")}.pdf`,
             content: pdfBase64,
           }
         ]
@@ -53,10 +60,10 @@ serve(async (req) => {
 
     const resData = await res.json();
     if (!res.ok) {
-      throw new Error(resData.message || "Failed to send email via Resend API.");
+      throw new Error(resData.message || "Failed to send email via Brevo API.");
     }
 
-    return new Response(JSON.stringify({ success: true, message: "Email sent successfully!" }), {
+    return new Response(JSON.stringify({ success: true, message: "Email sent successfully via Brevo!" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
