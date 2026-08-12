@@ -873,13 +873,16 @@ export default function ReportsScreen() {
       .replace(/\u00AE/g, '(R)')
       .replace(/\u00A9/g, '(C)');
 
-    // Filter out characters outside ASCII 32 to 126 range to prevent jsPDF Mojibake errors
+    // Allow ASCII range AND Tamil unicode characters (U+0B80 to U+0BFF)
     sanitized = sanitized.split('').map(char => {
       const code = char.charCodeAt(0);
       if ((code >= 32 && code <= 126) || code === 10 || code === 13) {
         return char;
       }
-      return ' '; // Replace other non-ascii characters with space
+      if (code >= 0x0B80 && code <= 0x0BFF) {
+        return char;
+      }
+      return ' '; // Replace other unsupported non-ascii characters with space
     }).join('');
 
     const cleanLine = (line: string): string => {
