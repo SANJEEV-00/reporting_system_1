@@ -12,6 +12,8 @@ import { DailyReport, ReportStatus } from '@/types/report';
 import { useAuth } from '@/contexts/auth-context';
 import { supabase } from '@/lib/supabase';
 
+let tamilFontBase64 = '';
+
 export default function ReportsScreen() {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
@@ -280,6 +282,27 @@ export default function ReportsScreen() {
       // Try loading from HTTPS CDNs first (essential for HTTPS vercel deployments)
       const jsPdfUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
       const autotableUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js";
+      const ttfUrl = "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansTamil/NotoSansTamil-Regular.ttf";
+
+      const loadFontAndResolve = async () => {
+        try {
+          if (!tamilFontBase64) {
+            const fontRes = await fetch(ttfUrl);
+            if (fontRes.ok) {
+              const arrayBuffer = await fontRes.arrayBuffer();
+              let binary = '';
+              const bytes = new Uint8Array(arrayBuffer);
+              for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+              }
+              tamilFontBase64 = window.btoa(binary);
+            }
+          }
+        } catch (err) {
+          console.warn("Could not load Noto Sans Tamil font, falling back to default Helvetica.", err);
+        }
+        resolve((window as any).jspdf);
+      };
 
       const loadFromLocalFallback = () => {
         const serverHost = Platform.OS === 'web' ? window.location.hostname : 'localhost';
@@ -292,7 +315,7 @@ export default function ReportsScreen() {
           const scriptAutoTable = document.createElement('script');
           scriptAutoTable.src = fallbackAutotable;
           scriptAutoTable.onload = () => {
-            resolve((window as any).jspdf);
+            loadFontAndResolve();
           };
           scriptAutoTable.onerror = () => reject(new Error("Failed to load local jsPDF autotable."));
           document.body.appendChild(scriptAutoTable);
@@ -307,7 +330,7 @@ export default function ReportsScreen() {
         const scriptAutoTable = document.createElement('script');
         scriptAutoTable.src = autotableUrl;
         scriptAutoTable.onload = () => {
-          resolve((window as any).jspdf);
+          loadFontAndResolve();
         };
         scriptAutoTable.onerror = () => {
           loadFromLocalFallback();
@@ -328,12 +351,24 @@ export default function ReportsScreen() {
     }
 
     const doc = new jsPDFConstructor();
+
+    // Register Tamil font if loaded successfully
+    if (tamilFontBase64) {
+      doc.addFileToVFS("NotoSansTamil.ttf", tamilFontBase64);
+      doc.addFont("NotoSansTamil.ttf", "NotoSansTamil", "normal");
+      doc.setFont("NotoSansTamil", "normal");
+    }
+
     const dateStr = getCurrentDateRangeStr();
 
     // Document Header
     doc.setFontSize(20);
     doc.setTextColor(30, 58, 138); // Dark blue
-    doc.setFont("helvetica", "bold");
+    if (tamilFontBase64) {
+      doc.setFont("NotoSansTamil", "normal");
+    } else {
+      doc.setFont("helvetica", "bold");
+    }
     doc.text("BARANI REPORTING SYSTEM", 14, 20);
 
     doc.setFontSize(14);
@@ -400,16 +435,19 @@ export default function ReportsScreen() {
         headStyles: { 
           fillColor: [254, 242, 242], 
           textColor: [220, 38, 38], 
-          fontStyle: 'bold',
+          fontStyle: tamilFontBase64 ? 'normal' : 'bold',
+          font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica',
           halign: 'left',
           fontSize: 8.5
         },
         bodyStyles: { 
           textColor: [220, 38, 38],
+          font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica',
           fontSize: 8.5
         },
         styles: { 
-          cellPadding: 2 
+          cellPadding: 2,
+          font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica'
         },
         columnStyles: {
           0: { cellWidth: 30.33 },
@@ -476,8 +514,20 @@ export default function ReportsScreen() {
       head: [['S.No', 'Employee', 'Project', 'Task Description', 'Duration']],
       body: tableBody,
       theme: 'grid',
-      headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold' },
-      styles: { fontSize: 9, cellPadding: 4, overflow: 'linebreak', lineColor: [0, 0, 0], lineWidth: 0.15 },
+      headStyles: { 
+        fillColor: [59, 130, 246], 
+        textColor: [255, 255, 255], 
+        fontStyle: tamilFontBase64 ? 'normal' : 'bold',
+        font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica'
+      },
+      styles: { 
+        fontSize: 9, 
+        cellPadding: 4, 
+        overflow: 'linebreak', 
+        lineColor: [0, 0, 0], 
+        lineWidth: 0.15,
+        font: tamilFontBase64 ? 'NotoSansTamil' : 'helvetica'
+      },
       columnStyles: {
         0: { cellWidth: 14 },
         1: { cellWidth: 35 },
