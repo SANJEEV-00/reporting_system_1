@@ -701,46 +701,35 @@ export default function ReportsScreen() {
     setEmailSending(true);
     try {
       const jspdfModule = await loadJsPDFLibrary();
-
       const dateStr = getCurrentDateRangeStr();
-
       const body = `Hi,\n\nPlease find attached the consolidated work report for ${dateStr}.\n\nBest regards,\nDepartment Head`;
-
       const pdfBase64 = generatePDFBase64(jspdfModule);
 
-      const serverHost = Platform.OS === 'web' ? window.location.hostname : 'localhost';
-      const apiUrl = `http://${serverHost}:8001/api/send-consolidated-report`;
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('send-consolidated-report', {
+        body: {
           recipients: recipientEmails.split(',').map(e => e.trim()),
           date: dateStr.replace(/ /g, '_'),
           pdfBase64,
           subject: `Consolidated Work Report (${dateStr})`,
           body
-        })
+        }
       });
 
-      const resData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(resData.error || 'Failed to send email');
+      if (error) throw error;
+      if (data && data.success === false) {
+        throw new Error(data.error || 'Failed to send email');
       }
 
       if (Platform.OS === 'web') {
-        alert("Success: Consolidated PDF report has been emailed directly!");
+        alert("Success: Consolidated PDF report has been emailed directly via Supabase!");
       } else {
-        Alert.alert("Success", "Consolidated PDF report has been emailed directly!");
+        Alert.alert("Success", "Consolidated PDF report has been emailed directly via Supabase!");
       }
       setEmailModalVisible(false);
       setRecipientEmails('');
     } catch (error: any) {
       console.error("Error sending direct email:", error);
-      const errorMsg = error?.message || "Ensure the background service is running on the server laptop and SMTP settings in .env are configured.";
+      const errorMsg = error?.message || "Ensure you have deployed the Edge Function and set up SMTP configurations in Supabase.";
       if (Platform.OS === 'web') {
         alert("Direct Send Failed:\n" + errorMsg);
       } else {
