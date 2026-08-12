@@ -67,6 +67,21 @@ async function runSync() {
     pool = await sql.connect(sqlConfig);
     log('Connected to SQL Server successfully.');
 
+    // Ensure all required Coil_Ref columns exist in the local project table (Self-healing schema migration)
+    await pool.request().query(`
+      IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND type in (N'U'))
+      BEGIN
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_1')
+              ALTER TABLE [dbo].[project] ADD [Coil_Ref_1] NVARCHAR(100) NULL;
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_2')
+              ALTER TABLE [dbo].[project] ADD [Coil_Ref_2] NVARCHAR(100) NULL;
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_3')
+              ALTER TABLE [dbo].[project] ADD [Coil_Ref_3] NVARCHAR(100) NULL;
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_4')
+              ALTER TABLE [dbo].[project] ADD [Coil_Ref_4] NVARCHAR(100) NULL;
+      END
+    `);
+
     // 2. Synchronize profiles
     log('Fetching user profiles from Supabase...');
     const { data: profiles, error: pError } = await supabase.from('profiles').select('*');
