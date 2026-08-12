@@ -277,9 +277,29 @@ export default function ReportsScreen() {
         return;
       }
 
-      const serverHost = Platform.OS === 'web' ? window.location.hostname : 'localhost';
-      const jsPdfUrl = `http://${serverHost}:8001/public/jspdf.umd.min.js`;
-      const autotableUrl = `http://${serverHost}:8001/public/jspdf.plugin.autotable.min.js`;
+      // Try loading from HTTPS CDNs first (essential for HTTPS vercel deployments)
+      const jsPdfUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      const autotableUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js";
+
+      const loadFromLocalFallback = () => {
+        const serverHost = Platform.OS === 'web' ? window.location.hostname : 'localhost';
+        const fallbackJsPdf = `http://${serverHost}:8001/public/jspdf.umd.min.js`;
+        const fallbackAutotable = `http://${serverHost}:8001/public/jspdf.plugin.autotable.min.js`;
+
+        const script = document.createElement('script');
+        script.src = fallbackJsPdf;
+        script.onload = () => {
+          const scriptAutoTable = document.createElement('script');
+          scriptAutoTable.src = fallbackAutotable;
+          scriptAutoTable.onload = () => {
+            resolve((window as any).jspdf);
+          };
+          scriptAutoTable.onerror = () => reject(new Error("Failed to load local jsPDF autotable."));
+          document.body.appendChild(scriptAutoTable);
+        };
+        script.onerror = () => reject(new Error("Failed to load jsPDF library from both cloud CDN and local server. Ensure internet or local service is running."));
+        document.body.appendChild(script);
+      };
 
       const script = document.createElement('script');
       script.src = jsPdfUrl;
@@ -289,10 +309,14 @@ export default function ReportsScreen() {
         scriptAutoTable.onload = () => {
           resolve((window as any).jspdf);
         };
-        scriptAutoTable.onerror = (e) => reject(new Error("Failed to load jsPDF autotable extension. Ensure background service is running."));
+        scriptAutoTable.onerror = () => {
+          loadFromLocalFallback();
+        };
         document.body.appendChild(scriptAutoTable);
       };
-      script.onerror = (e) => reject(new Error("Failed to load jsPDF core library. Ensure background service is running."));
+      script.onerror = () => {
+        loadFromLocalFallback();
+      };
       document.body.appendChild(script);
     });
   };
