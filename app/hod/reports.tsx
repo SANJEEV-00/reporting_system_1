@@ -282,7 +282,7 @@ export default function ReportsScreen() {
       // Try loading from HTTPS CDNs first (essential for HTTPS vercel deployments)
       const jsPdfUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
       const autotableUrl = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js";
-      const ttfUrl = "https://cdn.jsdelivr.net/gh/virtualvinodh/aksharamukha-fonts@master/MuktaMalar-Regular.ttf";
+      const ttfUrl = "https://cdn.jsdelivr.net/gh/googlefonts/catamaran@main/fonts/ttf/Catamaran-Regular.ttf";
 
       const loadFontAndResolve = async () => {
         try {
@@ -299,7 +299,7 @@ export default function ReportsScreen() {
             }
           }
         } catch (err) {
-          console.warn("Could not load Mukta Malar bilingual font, falling back to default Helvetica.", err);
+          console.warn("Could not load Catamaran bilingual font, falling back to default Helvetica.", err);
         }
         resolve((window as any).jspdf);
       };
@@ -351,13 +351,12 @@ export default function ReportsScreen() {
     }
 
     const doc = new jsPDFConstructor();
-    doc.setLineHeightFactor(1.5);
 
     // Register bilingual Latin & Tamil font if loaded successfully
     if (tamilFontBase64) {
-      doc.addFileToVFS("MuktaMalar.ttf", tamilFontBase64);
-      doc.addFont("MuktaMalar.ttf", "MuktaMalar", "normal");
-      doc.setFont("MuktaMalar", "normal");
+      doc.addFileToVFS("Catamaran.ttf", tamilFontBase64);
+      doc.addFont("Catamaran.ttf", "Catamaran", "normal");
+      doc.setFont("Catamaran", "normal");
     }
 
     const dateStr = getCurrentDateRangeStr();
@@ -366,7 +365,7 @@ export default function ReportsScreen() {
     doc.setFontSize(20);
     doc.setTextColor(30, 58, 138); // Dark blue
     if (tamilFontBase64) {
-      doc.setFont("MuktaMalar", "normal");
+      doc.setFont("Catamaran", "normal");
     } else {
       doc.setFont("helvetica", "bold");
     }
@@ -392,28 +391,28 @@ export default function ReportsScreen() {
     // Column 1: Department (printed dynamically using getTextWidth to prevent overlapping)
     const labelDept = "Department: ";
     const valDept = user?.department || 'Unknown Department';
-    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "bold");
+    doc.setFont(tamilFontBase64 ? "Catamaran" : "helvetica", "bold");
     doc.text(labelDept, 14, 40);
     const wDept = doc.getTextWidth(labelDept);
-    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "normal");
+    doc.setFont(tamilFontBase64 ? "Catamaran" : "helvetica", "normal");
     doc.text(valDept, 14 + wDept, 40);
 
     // Column 2: Reported Employees
     const labelRep = "Reported Employees: ";
     const valRep = `${yesterdayReported.length}/${totalEmployees}`;
-    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "bold");
+    doc.setFont(tamilFontBase64 ? "Catamaran" : "helvetica", "bold");
     doc.text(labelRep, 76, 40);
     const wRep = doc.getTextWidth(labelRep);
-    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "normal");
+    doc.setFont(tamilFontBase64 ? "Catamaran" : "helvetica", "normal");
     doc.text(valRep, 76 + wRep, 40);
 
     // Column 3: Backlogged Employees
     const labelBack = "Backlogged Employees: ";
     const valBack = `${yesterdayNotReported.length}/${totalEmployees}`;
-    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "bold");
+    doc.setFont(tamilFontBase64 ? "Catamaran" : "helvetica", "bold");
     doc.text(labelBack, 134, 40);
     const wBack = doc.getTextWidth(labelBack);
-    doc.setFont(tamilFontBase64 ? "MuktaMalar" : "helvetica", "normal");
+    doc.setFont(tamilFontBase64 ? "Catamaran" : "helvetica", "normal");
     doc.text(valBack, 134 + wBack, 40);
 
     doc.line(14, 46, 196, 46);
@@ -447,18 +446,18 @@ export default function ReportsScreen() {
           fillColor: [254, 242, 242], 
           textColor: [220, 38, 38], 
           fontStyle: tamilFontBase64 ? 'normal' : 'bold',
-          font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
+          font: tamilFontBase64 ? 'Catamaran' : 'helvetica',
           halign: 'left',
           fontSize: 11
         },
         bodyStyles: { 
           textColor: [220, 38, 38],
-          font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
+          font: tamilFontBase64 ? 'Catamaran' : 'helvetica',
           fontSize: 11
         },
         styles: { 
           cellPadding: 3,
-          font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
+          font: tamilFontBase64 ? 'Catamaran' : 'helvetica'
         },
         columnStyles: {
           0: { cellWidth: 60.6 },
@@ -526,7 +525,7 @@ export default function ReportsScreen() {
         fillColor: [59, 130, 246], 
         textColor: [255, 255, 255], 
         fontStyle: tamilFontBase64 ? 'normal' : 'bold',
-        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
+        font: tamilFontBase64 ? 'Catamaran' : 'helvetica',
         fontSize: 11.5
       },
       styles: { 
@@ -535,9 +534,8 @@ export default function ReportsScreen() {
         overflow: 'linebreak', 
         lineColor: [0, 0, 0], 
         lineWidth: 0.15,
-        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
-        textColor: [0, 0, 0],
-        lineHeight: 1.5
+        font: tamilFontBase64 ? 'Catamaran' : 'helvetica',
+        textColor: [0, 0, 0]
       },
       columnStyles: {
         0: { cellWidth: 14 },
