@@ -75,6 +75,7 @@ export default function ProjectRodsScreen() {
   };
 
   const handleAddSubmit = async () => {
+    if (actionLoading) return;
     const trimmedRodType = rodTypeForm.trim();
     if (!trimmedRodType) {
       showAlert('Input Required', 'Please enter a rod type.');
@@ -110,6 +111,7 @@ export default function ProjectRodsScreen() {
   };
 
   const handleEditSubmit = async () => {
+    if (actionLoading) return;
     const trimmedRodType = rodTypeForm.trim();
     if (!trimmedRodType) {
       showAlert('Input Required', 'Please enter a rod type.');

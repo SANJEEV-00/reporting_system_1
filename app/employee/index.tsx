@@ -611,6 +611,7 @@ export default function EmployeeDashboard() {
   };
 
   const handleSaveAll = async () => {
+    if (isSaving) return;
     if (dailyTasks.length === 0) {
       alert("No tasks to save. Please add a task first.");
       return;

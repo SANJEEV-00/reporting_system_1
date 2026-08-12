@@ -77,6 +77,7 @@ export default function ProjectCoilsScreen() {
   };
 
   const handleAddSubmit = async () => {
+    if (actionLoading) return;
     const trimmedCoilNo = coilNoForm.trim();
     if (!trimmedCoilNo) {
       showAlert('Input Required', 'Please enter a coil reference number.');
@@ -114,6 +115,7 @@ export default function ProjectCoilsScreen() {
   };
 
   const handleEditSubmit = async () => {
+    if (actionLoading) return;
     const trimmedCoilNo = coilNoForm.trim();
     if (!trimmedCoilNo) {
       showAlert('Input Required', 'Please enter a coil reference number.');
