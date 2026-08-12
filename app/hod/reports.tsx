@@ -385,7 +385,7 @@ export default function ReportsScreen() {
 
     const totalEmployees = yesterdayReported.length + yesterdayNotReported.length;
 
-    doc.setFontSize(9);
+    doc.setFontSize(10.5);
     doc.setTextColor(75, 85, 99); // Grey
     
     doc.setFont("helvetica", "bold");
@@ -438,12 +438,12 @@ export default function ReportsScreen() {
           fontStyle: tamilFontBase64 ? 'normal' : 'bold',
           font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
           halign: 'left',
-          fontSize: 8.5
+          fontSize: 10
         },
         bodyStyles: { 
           textColor: [220, 38, 38],
           font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
-          fontSize: 8.5
+          fontSize: 10
         },
         styles: { 
           cellPadding: 2,
@@ -518,10 +518,11 @@ export default function ReportsScreen() {
         fillColor: [59, 130, 246], 
         textColor: [255, 255, 255], 
         fontStyle: tamilFontBase64 ? 'normal' : 'bold',
-        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica'
+        font: tamilFontBase64 ? 'MuktaMalar' : 'helvetica',
+        fontSize: 11
       },
       styles: { 
-        fontSize: 9, 
+        fontSize: 10.5, 
         cellPadding: 4, 
         overflow: 'linebreak', 
         lineColor: [0, 0, 0], 
