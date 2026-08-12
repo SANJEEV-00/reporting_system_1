@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
-// CORS Headers for client-side invokes
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -9,7 +7,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -24,44 +21,40 @@ serve(async (req) => {
       throw new Error("Missing pdfBase64 attachment content.");
     }
 
-    // SMTP Config from Supabase environment variables (secrets)
-    const host = Deno.env.get("SMTP_HOST") || "smtp.gmail.com";
-    const port = parseInt(Deno.env.get("SMTP_PORT") || "587", 10);
-    const user = Deno.env.get("SMTP_USER") || "sanjeev520212@gmail.com";
-    const pass = Deno.env.get("SMTP_PASSWORD") || "cqyo jqui drpj oomf";
+    // Get Resend API Key from Supabase secrets
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY is not configured in Supabase secrets.");
+    }
 
-    // Create SMTP Client
-    const client = new SMTPClient({
-      connection: {
-        hostname: host,
-        port: port,
-        tls: {
-          enabled: true,
-        },
-        auth: {
-          username: user,
-          password: pass,
-        },
+    // Default sender (onboarding@resend.dev works for testing to your own account email)
+    const sender = Deno.env.get("SENDER_EMAIL") || "onboarding@resend.dev";
+
+    // Call Resend's HTTPS API (fully allowed in Supabase sandbox)
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${resendApiKey}`,
       },
+      body: JSON.stringify({
+        from: `Barani Reports <${sender}>`,
+        to: recipients,
+        subject: subject || `Consolidated Work Report (${date})`,
+        html: `<p>${(body || "Please find attached the consolidated work report.").replace(/\n/g, "<br>")}</p>`,
+        attachments: [
+          {
+            filename: `Consolidated_Report_${String(date).replace(/ /g, "_")}.pdf`,
+            content: pdfBase64,
+          }
+        ]
+      })
     });
 
-    // Send Email
-    await client.send({
-      from: `Barani Reports <${user}>`,
-      to: recipients,
-      subject: subject || `Consolidated Work Report (${date})`,
-      content: body || "Please find attached the consolidated work report.",
-      attachments: [
-        {
-          filename: `Consolidated_Report_${String(date).replace(/ /g, "_")}.pdf`,
-          content: pdfBase64,
-          encoding: "base64",
-          contentType: "application/pdf"
-        }
-      ]
-    });
-
-    await client.close();
+    const resData = await res.json();
+    if (!res.ok) {
+      throw new Error(resData.message || "Failed to send email via Resend API.");
+    }
 
     return new Response(JSON.stringify({ success: true, message: "Email sent successfully!" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

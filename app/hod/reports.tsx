@@ -813,6 +813,25 @@ export default function ReportsScreen() {
   const cleanText = (str: string): string => {
     if (!str) return '';
     
+    // Replace common non-ASCII characters with safe alternatives
+    let sanitized = str
+      .replace(/[●•\u25CF\u2022]/g, '-')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2013\u2014]/g, '-')
+      .replace(/\u2122/g, 'TM')
+      .replace(/\u00AE/g, '(R)')
+      .replace(/\u00A9/g, '(C)');
+
+    // Filter out characters outside ASCII 32 to 126 range to prevent jsPDF Mojibake errors
+    sanitized = sanitized.split('').map(char => {
+      const code = char.charCodeAt(0);
+      if ((code >= 32 && code <= 126) || code === 10 || code === 13) {
+        return char;
+      }
+      return ' '; // Replace other non-ascii characters with space
+    }).join('');
+
     const cleanLine = (line: string): string => {
       const isGarbled = /([a-zA-Z0-9]\s*&\s*){3,}/.test(line) || (line.match(/&/g) || []).length > 5;
       if (isGarbled) {
@@ -825,7 +844,7 @@ export default function ReportsScreen() {
       return line;
     };
 
-    return str
+    return sanitized
       .split('\n')
       .map(cleanLine)
       .filter(line => line.length > 0)
