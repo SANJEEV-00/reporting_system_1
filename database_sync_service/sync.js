@@ -233,22 +233,22 @@ async function runSync() {
 
         // 6. Delete those archived tasks from Supabase cloud
         log('Deleting archived tasks from Supabase cloud...');
-        const deletePromises = tasks.map(task => 
-          supabase
-            .from('project')
-            .delete()
-            .eq('employee_ID', task.employee_ID)
-            .eq('date', task.date)
-            .eq('Project_Id', task.Project_Id)
-            .eq('Task', task.Task)
-            .then(({ error }) => { if (error) throw error; })
-        );
         
-        // Execute in parallel batches of 20 to avoid rate limits
+        // Execute in parallel batches of 20 to avoid rate limits and memory issues
         const deleteBatchSize = 20;
-        for (let i = 0; i < deletePromises.length; i += deleteBatchSize) {
-          const batch = deletePromises.slice(i, i + deleteBatchSize);
-          await Promise.all(batch);
+        for (let i = 0; i < tasks.length; i += deleteBatchSize) {
+          const batchTasks = tasks.slice(i, i + deleteBatchSize);
+          const batchPromises = batchTasks.map(task => 
+            supabase
+              .from('project')
+              .delete()
+              .eq('employee_ID', task.employee_ID)
+              .eq('date', task.date)
+              .eq('Project_Id', task.Project_Id)
+              .eq('Task', task.Task)
+              .then(({ error }) => { if (error) throw error; })
+          );
+          await Promise.all(batchPromises);
         }
 
         log(`Successfully archived and deleted ${tasks.length} tasks from Supabase.`);
