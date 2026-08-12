@@ -415,8 +415,23 @@ export default function ReportsScreen() {
         let desc = extractTaskDescription(r.work_description);
         // Replace unsupported unicode bullets with standard hyphens for jsPDF compatibility
         desc = desc.replace(/[●•\u25CF\u2022]/g, '-');
+        
+        const fab = parseFabricationDetails(r.work_description);
+        let extraInfo = '';
+        if (fab.component) {
+          extraInfo += `\nComponent: ${fab.component}${fab.drawing ? ` (DWG: ${fab.drawing})` : ''}`;
+        }
+        if (fab.coil) {
+          extraInfo += `\nCoil Ref: ${fab.coil}`;
+        } else if (r.Coil_Ref_1) {
+          extraInfo += `\nCoil Ref: ${r.Coil_Ref_1}`;
+        }
+        if (fab.rod) {
+          extraInfo += `\nRod: ${fab.rod}`;
+        }
+        
         const projHeader = r.project_id ? `${r.project_id} - ${r.task_name}` : r.task_name;
-        return `[${projHeader}]\n${desc}`;
+        return `[${projHeader}]${extraInfo}\n${desc}`;
       }).join('\n\n');
 
       // Group durations
@@ -467,8 +482,22 @@ export default function ReportsScreen() {
 
       const tasksHtml = group.reports.map(r => {
         const desc = extractTaskDescription(r.work_description);
+        const fab = parseFabricationDetails(r.work_description);
+        let extraHtml = '';
+        if (fab.component) {
+          extraHtml += `<div style="font-size: 12px; color: #4B5563; margin-top: 4px;"><strong>Component:</strong> ${fab.component}${fab.drawing ? ` (DWG: ${fab.drawing})` : ''}</div>`;
+        }
+        if (fab.coil) {
+          extraHtml += `<div style="font-size: 12px; color: #1D4ED8; margin-top: 4px;"><strong>Coil Ref:</strong> ${fab.coil}</div>`;
+        } else if (r.Coil_Ref_1) {
+          extraHtml += `<div style="font-size: 12px; color: #1D4ED8; margin-top: 4px;"><strong>Coil Ref:</strong> ${r.Coil_Ref_1}</div>`;
+        }
+        if (fab.rod) {
+          extraHtml += `<div style="font-size: 12px; color: #047857; margin-top: 4px;"><strong>Rod:</strong> ${fab.rod}</div>`;
+        }
+        
         const projHeader = r.project_id ? `${r.project_id} - ${r.task_name}` : r.task_name;
-        return `<div style="margin-bottom: 12px;"><strong style="color: #1E3A8A; font-size: 13px;">[${projHeader}]</strong><div style="white-space: pre-wrap; margin-top: 4px; line-height: 1.4; color: #374151;">${desc}</div></div>`;
+        return `<div style="margin-bottom: 12px;"><strong style="color: #1E3A8A; font-size: 13px;">[${projHeader}]</strong>${extraHtml}<div style="white-space: pre-wrap; margin-top: 6px; line-height: 1.4; color: #374151;">${desc}</div></div>`;
       }).join('');
 
       const durationsHtml = group.reports.map(r => `<div style="margin-bottom: 6px;">${r.hours_worked} hrs</div>`).join('');
@@ -785,6 +814,41 @@ export default function ReportsScreen() {
       .join('\n');
   };
 
+  const parseFabricationDetails = (fullDesc: string) => {
+    if (!fullDesc) return { component: '', drawing: '', coil: '', rod: '' };
+    
+    let component = '';
+    let drawing = '';
+    let coil = '';
+    let rod = '';
+    
+    const lines = fullDesc.split('\n');
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('Component:')) {
+        const compText = trimmedLine.substring(10).trim();
+        const dwgIdx = compText.indexOf('(DWG:');
+        if (dwgIdx !== -1) {
+          component = compText.substring(0, dwgIdx).trim();
+          drawing = compText.substring(dwgIdx + 5, compText.length - 1).trim();
+        } else {
+          component = compText;
+        }
+      } else if (trimmedLine.startsWith('Coil Ref 1:')) {
+        coil = trimmedLine.substring(11).trim();
+      } else if (trimmedLine.startsWith('Rod Type:')) {
+        const rodText = trimmedLine.substring(9).trim();
+        const qtyIdx = rodText.indexOf('(Qty:');
+        if (qtyIdx !== -1) {
+          rod = rodText.substring(0, qtyIdx).trim() + ` (Qty: ` + rodText.substring(qtyIdx + 5, rodText.length - 1).trim() + `)`;
+        } else {
+          rod = rodText;
+        }
+      }
+    }
+    return { component, drawing, coil, rod };
+  };
+
   const extractTaskDescription = (fullDesc: string) => {
     if (!fullDesc) return '';
     const taskMarker = 'Task:\n';
@@ -796,6 +860,36 @@ export default function ReportsScreen() {
       desc = fullDesc.trim();
     }
     return cleanText(desc);
+  };
+
+  const renderFabricationDetails = (task: any) => {
+    const fab = parseFabricationDetails(task.work_description);
+    return (
+      <View style={{ gap: 2 }}>
+        {fab.component ? (
+          <Text style={{ fontSize: 12, color: '#4B5563', marginTop: 4 }}>
+            Component: <Text style={{ fontWeight: '600' }}>{fab.component}</Text>
+            {fab.drawing ? ` (DWG: ${fab.drawing})` : ''}
+          </Text>
+        ) : null}
+
+        {fab.coil ? (
+          <Text style={{ fontSize: 12, color: '#0056FF', marginTop: 4, fontWeight: '600' }}>
+            Coil Ref: {fab.coil}
+          </Text>
+        ) : (task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
+          <Text style={{ fontSize: 12, color: '#0056FF', marginTop: 4, fontWeight: '600' }}>
+            Coil Ref: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
+          </Text>
+        ) : null}
+
+        {fab.rod ? (
+          <Text style={{ fontSize: 12, color: '#059669', marginTop: 4, fontWeight: '600' }}>
+            Rod: {fab.rod}
+          </Text>
+        ) : null}
+      </View>
+    );
   };
 
   const parseHours = (durationStr: any): number => {
@@ -1337,11 +1431,7 @@ export default function ReportsScreen() {
                         <Text style={{ fontSize: 14, color: Brand.colors.textSecondary }} numberOfLines={2}>
                           {extractTaskDescription(task.work_description)}
                         </Text>
-                        {(task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
-                          <Text style={{ fontSize: 11, color: '#0056FF', marginTop: 2, fontWeight: '600' }}>
-                            Coils: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
-                          </Text>
-                        ) : null}
+                        {renderFabricationDetails(task)}
                       </View>
                       <Text style={styles.taskDate}>
                         {task.report_date}
@@ -1385,11 +1475,7 @@ export default function ReportsScreen() {
                         <Text style={{ fontSize: 14, color: Brand.colors.textSecondary }} numberOfLines={2}>
                           {extractTaskDescription(task.work_description)}
                         </Text>
-                        {(task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
-                          <Text style={{ fontSize: 11, color: '#0056FF', marginTop: 2, fontWeight: '600' }}>
-                            Coils: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
-                          </Text>
-                        ) : null}
+                        {renderFabricationDetails(task)}
                       </View>
                       <Text style={styles.taskDate}>
                         {task.report_date}
@@ -1517,11 +1603,7 @@ export default function ReportsScreen() {
                             <Text style={{ fontSize: 13, color: Brand.colors.textSecondary, marginTop: 2 }} numberOfLines={2}>
                               {extractTaskDescription(r.work_description)}
                             </Text>
-                            {(r.Coil_Ref_1 || r.Coil_Ref_2 || r.Coil_Ref_3 || r.Coil_Ref_4) ? (
-                              <Text style={{ fontSize: 12, color: '#0056FF', fontWeight: '600', marginTop: 4 }}>
-                                Coils: {[r.Coil_Ref_1, r.Coil_Ref_2, r.Coil_Ref_3, r.Coil_Ref_4].filter(Boolean).join(', ')}
-                              </Text>
-                            ) : null}
+                            {renderFabricationDetails(r)}
                             <Text style={{ fontSize: 12, fontWeight: '700', color: Brand.colors.textSecondary, marginTop: 4 }}>
                               Hours Worked: {r.hours_worked} hrs
                             </Text>
@@ -1748,11 +1830,7 @@ export default function ReportsScreen() {
                               }}>
                                 <View style={{ flex: 2, gap: 4, paddingRight: 8 }}>
                                   <Text style={styles.cell} numberOfLines={3}>{extractTaskDescription(task.work_description)}</Text>
-                                  {(task.Coil_Ref_1 || task.Coil_Ref_2 || task.Coil_Ref_3 || task.Coil_Ref_4) ? (
-                                    <Text style={{ fontSize: 11, color: '#0056FF', fontWeight: '600' }}>
-                                      Coils: {[task.Coil_Ref_1, task.Coil_Ref_2, task.Coil_Ref_3, task.Coil_Ref_4].filter(Boolean).join(', ')}
-                                    </Text>
-                                  ) : null}
+                                  {renderFabricationDetails(task)}
                                 </View>
                                 <Text style={[styles.cell, { flex: 1.5 }]}>{task.report_date}</Text>
                                 <Text style={[styles.cell, { flex: 0.8, textAlign: 'center' }]}>{task.hours_worked}</Text>
