@@ -67,10 +67,38 @@ async function runSync() {
     pool = await sql.connect(sqlConfig);
     log('Connected to SQL Server successfully.');
 
-    // Ensure all required Coil_Ref columns exist in the local project table (Self-healing schema migration)
+    // Ensure local project table uses an IDENTITY auto-generating key (self-healing migration)
     await pool.request().query(`
       IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND type in (N'U'))
       BEGIN
+          -- If 'id' is not an IDENTITY column, drop the table (safe because it's empty) and recreate it correctly
+          IF COLUMNPROPERTY(OBJECT_ID('dbo.project'), 'id', 'IsIdentity') = 0 OR COLUMNPROPERTY(OBJECT_ID('dbo.project'), 'id', 'IsIdentity') IS NULL
+          BEGIN
+              DROP TABLE [dbo].[project];
+          END
+      END
+
+      IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND type in (N'U'))
+      BEGIN
+          CREATE TABLE [dbo].[project] (
+              [id] INT IDENTITY(1,1) PRIMARY KEY,
+              [employee_ID] NVARCHAR(100) NOT NULL,
+              [Department] NVARCHAR(150) NOT NULL,
+              [Project_name] NVARCHAR(255) NOT NULL,
+              [Project_Id] NVARCHAR(100) NOT NULL,
+              [Task] NVARCHAR(MAX) NOT NULL,
+              [date] DATE NOT NULL,
+              [duration] NVARCHAR(50) NOT NULL,
+              [Coil_Ref_1] NVARCHAR(100) NULL,
+              [Coil_Ref_2] NVARCHAR(100) NULL,
+              [Coil_Ref_3] NVARCHAR(100) NULL,
+              [Coil_Ref_4] NVARCHAR(100) NULL,
+              [created_at] DATETIMEOFFSET DEFAULT SYSDATETIMEOFFSET()
+          );
+      END
+      ELSE
+      BEGIN
+          -- Make sure all Coil_Ref columns exist
           IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_1')
               ALTER TABLE [dbo].[project] ADD [Coil_Ref_1] NVARCHAR(100) NULL;
           IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[project]') AND name = N'Coil_Ref_2')
@@ -172,7 +200,6 @@ async function runSync() {
         for (const task of tasks) {
           const request = new sql.Request(transaction);
           await request
-            .input('id', sql.BigInt, task.id)
             .input('employee_ID', sql.NVarChar(100), task.employee_ID)
             .input('Department', sql.NVarChar(150), task.Department)
             .input('Project_name', sql.NVarChar(255), task.Project_name)
@@ -186,10 +213,16 @@ async function runSync() {
             .input('Coil_Ref_4', sql.NVarChar(100), task.Coil_Ref_4 || task.coilRef4 || null)
             .input('created_at', sql.DateTimeOffset, task.created_at ? new Date(task.created_at) : new Date())
             .query(`
-              IF NOT EXISTS (SELECT 1 FROM [dbo].[project] WHERE id = @id)
+              IF NOT EXISTS (
+                  SELECT 1 FROM [dbo].[project] 
+                  WHERE employee_ID = @employee_ID 
+                    AND date = @date 
+                    AND Project_Id = @Project_Id 
+                    AND Task = @Task
+              )
               BEGIN
-                  INSERT INTO [dbo].[project] (id, employee_ID, Department, Project_name, Project_Id, Task, date, duration, Coil_Ref_1, Coil_Ref_2, Coil_Ref_3, Coil_Ref_4, created_at)
-                  VALUES (@id, @employee_ID, @Department, @Project_name, @Project_Id, @Task, @date, @duration, @Coil_Ref_1, @Coil_Ref_2, @Coil_Ref_3, @Coil_Ref_4, @created_at);
+                  INSERT INTO [dbo].[project] (employee_ID, Department, Project_name, Project_Id, Task, date, duration, Coil_Ref_1, Coil_Ref_2, Coil_Ref_3, Coil_Ref_4, created_at)
+                  VALUES (@employee_ID, @Department, @Project_name, @Project_Id, @Task, @date, @duration, @Coil_Ref_1, @Coil_Ref_2, @Coil_Ref_3, @Coil_Ref_4, @created_at);
               END
             `);
         }
@@ -200,18 +233,22 @@ async function runSync() {
 
         // 6. Delete those archived tasks from Supabase cloud
         log('Deleting archived tasks from Supabase cloud...');
-        const taskIds = tasks.map(t => t.id);
-        
-        // Supabase limits or batch operations: delete in blocks if tasks count is large
-        const batchSize = 100;
-        for (let i = 0; i < taskIds.length; i += batchSize) {
-          const batchIds = taskIds.slice(i, i + batchSize);
-          const { error: dError } = await supabase
+        const deletePromises = tasks.map(task => 
+          supabase
             .from('project')
             .delete()
-            .in('id', batchIds);
-            
-          if (dError) throw dError;
+            .eq('employee_ID', task.employee_ID)
+            .eq('date', task.date)
+            .eq('Project_Id', task.Project_Id)
+            .eq('Task', task.Task)
+            .then(({ error }) => { if (error) throw error; })
+        );
+        
+        // Execute in parallel batches of 20 to avoid rate limits
+        const deleteBatchSize = 20;
+        for (let i = 0; i < deletePromises.length; i += deleteBatchSize) {
+          const batch = deletePromises.slice(i, i + deleteBatchSize);
+          await Promise.all(batch);
         }
 
         log(`Successfully archived and deleted ${tasks.length} tasks from Supabase.`);
