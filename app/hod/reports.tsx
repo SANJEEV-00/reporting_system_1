@@ -541,8 +541,13 @@ export default function ReportsScreen() {
           <h3 style="margin-top: 0; margin-bottom: 10px; color: #DC2626; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
             Pending Submissions (Not Reported Employees):
           </h3>
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px 10px; color: #DC2626; font-size: 13px; font-weight: 600;">
-            ${htmlSortedBacklog.map(item => `<div>&bull; ${item.employee?.name || 'Unknown'}</div>`).join('')}
+          <div style="display: flex; flex-flow: row wrap; gap: 8px 20px; color: #DC2626; font-size: 13px; font-weight: 600;">
+            ${htmlSortedBacklog.map(item => `
+              <div style="white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                <span style="color: #EF4444; font-size: 14px;">&bull;</span>
+                <span>${item.employee?.name || 'Unknown'}</span>
+              </div>
+            `).join('')}
           </div>
         </div>
       `;
