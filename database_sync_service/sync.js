@@ -172,6 +172,64 @@ async function runSync() {
     }
     log('Projects list synchronized.');
 
+    // 3.5 Auto-detect and complete existing used coils (brings past completed coils into sync)
+    log('Checking for existing completed coils across cloud and local archives...');
+    try {
+      const { data: cloudTasks, error: ctError } = await supabase
+        .from('project')
+        .select('Coil_Ref_1, Coil_Ref_2, Coil_Ref_3, Coil_Ref_4');
+      if (ctError) throw ctError;
+
+      const localTasksResult = await pool.request().query(`
+        SELECT DISTINCT Coil_Ref_1 FROM [dbo].[project] WHERE Coil_Ref_1 IS NOT NULL
+        UNION
+        SELECT DISTINCT Coil_Ref_2 FROM [dbo].[project] WHERE Coil_Ref_2 IS NOT NULL
+        UNION
+        SELECT DISTINCT Coil_Ref_3 FROM [dbo].[project] WHERE Coil_Ref_3 IS NOT NULL
+        UNION
+        SELECT DISTINCT Coil_Ref_4 FROM [dbo].[project] WHERE Coil_Ref_4 IS NOT NULL
+      `);
+
+      const completedCoils = new Set();
+
+      // Add from cloud tasks
+      cloudTasks.forEach(t => {
+        if (t.Coil_Ref_1?.trim()) completedCoils.add(t.Coil_Ref_1.trim());
+        if (t.Coil_Ref_2?.trim()) completedCoils.add(t.Coil_Ref_2.trim());
+        if (t.Coil_Ref_3?.trim()) completedCoils.add(t.Coil_Ref_3.trim());
+        if (t.Coil_Ref_4?.trim()) completedCoils.add(t.Coil_Ref_4.trim());
+      });
+
+      // Add from local archived tasks
+      localTasksResult.recordset.forEach(row => {
+        const val = Object.values(row)[0];
+        if (val && typeof val === 'string' && val.trim()) {
+          completedCoils.add(val.trim());
+        }
+      });
+
+      if (completedCoils.size > 0) {
+        const completedCoilsArray = Array.from(completedCoils);
+        log(`Found ${completedCoilsArray.length} unique completed coils in history. Syncing statuses with cloud...`);
+        
+        // Update in batches of 100
+        const updateBatchSize = 100;
+        for (let i = 0; i < completedCoilsArray.length; i += updateBatchSize) {
+          const batch = completedCoilsArray.slice(i, i + updateBatchSize);
+          const { error: coilErr } = await supabase
+            .from('fabrication_coils')
+            .update({ status: 'Completed' })
+            .in('coil_no', batch);
+          if (coilErr) throw coilErr;
+        }
+        log('Historical completed coils synchronized successfully.');
+      } else {
+        log('No historical completed coils found to update.');
+      }
+    } catch (err) {
+      log(`WARNING: Failed to auto-sync historical completed coils: ${err.message}`);
+    }
+
     // 4. Fetch daily tasks older than N retention days for archiving
     const retentionDays = parseInt(process.env.SYNC_RETENTION_DAYS || '30', 10);
     const cutoffDate = new Date();
