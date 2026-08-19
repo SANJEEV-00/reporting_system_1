@@ -222,6 +222,9 @@ export default function ProjectCoilsScreen() {
     }
   };
 
+  const activeCount = coils.filter(c => c.status === 'Active' || c.status === 'Inactive').length;
+  const completedCount = coils.filter(c => c.status === 'Completed').length;
+
   const filteredCoils = coils
     .filter((c) => {
       if (activeTab === 'Completed') {
@@ -268,7 +271,7 @@ export default function ProjectCoilsScreen() {
         >
           <Ionicons name="play-outline" size={16} color={activeTab === 'Active' ? '#FFF' : '#4B5563'} />
           <Text style={[styles.tabButtonText, activeTab === 'Active' && styles.tabButtonActiveText]}>
-            Active Coils
+            Active Coils ({activeCount})
           </Text>
         </TouchableOpacity>
 
@@ -278,7 +281,7 @@ export default function ProjectCoilsScreen() {
         >
           <Ionicons name="checkmark-circle-outline" size={16} color={activeTab === 'Completed' ? '#FFF' : '#4B5563'} />
           <Text style={[styles.tabButtonText, activeTab === 'Completed' && styles.tabButtonActiveText]}>
-            Completed Coils
+            Completed Coils ({completedCount})
           </Text>
         </TouchableOpacity>
       </View>
