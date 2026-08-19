@@ -636,6 +636,28 @@ export default function EmployeeDashboard() {
       const { error } = await supabase.from('project').insert(inserts);
 
       if (error) throw error;
+
+      // Automatically update the status of used coils to 'Completed' in the cloud database
+      const isFabrication = user?.department === 'Fabrication';
+      const coilRefsToComplete: string[] = [];
+      if (isFabrication) {
+        dailyTasks.forEach(task => {
+          if (task.coilRef1?.trim()) coilRefsToComplete.push(task.coilRef1.trim());
+          if (task.coilRef2?.trim()) coilRefsToComplete.push(task.coilRef2.trim());
+          if (task.coilRef3?.trim()) coilRefsToComplete.push(task.coilRef3.trim());
+          if (task.coilRef4?.trim()) coilRefsToComplete.push(task.coilRef4.trim());
+        });
+      }
+
+      if (coilRefsToComplete.length > 0) {
+        const { error: coilError } = await supabase
+          .from('fabrication_coils')
+          .update({ status: 'Completed' })
+          .in('coil_no', coilRefsToComplete);
+        if (coilError) {
+          console.error('Failed to update coils status to Completed:', coilError);
+        }
+      }
       
       alert('All tasks saved successfully for today!');
       setDailyTasks([]);

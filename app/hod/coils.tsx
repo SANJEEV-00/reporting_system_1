@@ -41,6 +41,7 @@ export default function ProjectCoilsScreen() {
 
   // Selection & forms
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'Active' | 'Completed'>('Active');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -221,11 +222,19 @@ export default function ProjectCoilsScreen() {
     }
   };
 
-  const filteredCoils = coils.filter((c) =>
-    c.coil_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (c.received_date && c.received_date.includes(searchQuery))
-  );
+  const filteredCoils = coils
+    .filter((c) => {
+      if (activeTab === 'Completed') {
+        return c.status === 'Completed';
+      } else {
+        return c.status === 'Active' || c.status === 'Inactive';
+      }
+    })
+    .filter((c) =>
+      c.coil_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.received_date && c.received_date.includes(searchQuery))
+    );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
@@ -249,6 +258,29 @@ export default function ProjectCoilsScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+      </View>
+
+      {/* Tabs Selector */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'Active' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('Active')}
+        >
+          <Ionicons name="play-outline" size={16} color={activeTab === 'Active' ? '#FFF' : '#4B5563'} />
+          <Text style={[styles.tabButtonText, activeTab === 'Active' && styles.tabButtonActiveText]}>
+            Active Coils
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'Completed' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('Completed')}
+        >
+          <Ionicons name="checkmark-circle-outline" size={16} color={activeTab === 'Completed' ? '#FFF' : '#4B5563'} />
+          <Text style={[styles.tabButtonText, activeTab === 'Completed' && styles.tabButtonActiveText]}>
+            Completed Coils
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {loadingCoils ? (
@@ -279,8 +311,18 @@ export default function ProjectCoilsScreen() {
                       </View>
                     ) : null}
                     <View style={styles.badgeContainer}>
-                      <View style={[styles.badge, item.status === 'Active' ? styles.badgeActive : styles.badgeInactive]}>
-                        <Text style={[styles.badgeText, item.status === 'Active' ? styles.badgeActiveText : styles.badgeInactiveText]}>
+                      <View style={[
+                        styles.badge, 
+                        item.status === 'Active' ? styles.badgeActive : 
+                        item.status === 'Completed' ? styles.badgeCompleted : 
+                        styles.badgeInactive
+                      ]}>
+                        <Text style={[
+                          styles.badgeText, 
+                          item.status === 'Active' ? styles.badgeActiveText : 
+                          item.status === 'Completed' ? styles.badgeCompletedText : 
+                          styles.badgeInactiveText
+                        ]}>
                           {item.status}
                         </Text>
                       </View>
@@ -364,6 +406,7 @@ export default function ProjectCoilsScreen() {
                     onValueChange={setStatusForm}
                     items={[
                       { label: 'Active', value: 'Active' },
+                      { label: 'Completed', value: 'Completed' },
                       { label: 'Inactive', value: 'Inactive' }
                     ]}
                   />
@@ -450,6 +493,7 @@ export default function ProjectCoilsScreen() {
                     onValueChange={setStatusForm}
                     items={[
                       { label: 'Active', value: 'Active' },
+                      { label: 'Completed', value: 'Completed' },
                       { label: 'Inactive', value: 'Inactive' }
                     ]}
                   />
@@ -602,6 +646,9 @@ const styles = StyleSheet.create({
   badgeActive: {
     backgroundColor: '#DEF7EC',
   },
+  badgeCompleted: {
+    backgroundColor: '#E1EFFE',
+  },
   badgeInactive: {
     backgroundColor: '#FDE8E8',
   },
@@ -612,8 +659,39 @@ const styles = StyleSheet.create({
   badgeActiveText: {
     color: '#03543F',
   },
+  badgeCompletedText: {
+    color: '#1E429F',
+  },
   badgeInactiveText: {
     color: '#9B1C1C',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 4,
+    gap: 4,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 6,
+    gap: 6,
+  },
+  tabButtonActive: {
+    backgroundColor: Brand.colors.primary,
+  },
+  tabButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  tabButtonActiveText: {
+    color: '#FFF',
   },
   cardRight: {
     flexDirection: 'row',
