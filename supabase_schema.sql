@@ -234,8 +234,9 @@ BEGIN
     RAISE EXCEPTION 'Can only delete users in your own department';
   END IF;
 
-  DELETE FROM auth.users WHERE id = target_user_id;
+  DELETE FROM public.daily_reports WHERE employee_id = target_user_id;
   DELETE FROM public.profiles WHERE id = target_user_id;
+  DELETE FROM auth.users WHERE id = target_user_id;
 
   RETURN TRUE;
 END;
