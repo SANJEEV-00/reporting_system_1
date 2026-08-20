@@ -24,3 +24,13 @@ CREATE POLICY "Allow HODs to manage fabrication coils" ON public.fabrication_coi
       AND profiles.role = 'hod'
     )
   );
+
+-- Function to allow employees to mark coils as Completed (runs with SECURITY DEFINER to bypass RLS)
+CREATE OR REPLACE FUNCTION public.complete_fabrication_coils(coil_numbers TEXT[])
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.fabrication_coils
+  SET status = 'Completed'
+  WHERE coil_no = ANY(coil_numbers);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

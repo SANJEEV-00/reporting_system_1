@@ -651,9 +651,7 @@ export default function EmployeeDashboard() {
 
       if (coilRefsToComplete.length > 0) {
         const { error: coilError } = await supabase
-          .from('fabrication_coils')
-          .update({ status: 'Completed' })
-          .in('coil_no', coilRefsToComplete);
+          .rpc('complete_fabrication_coils', { coil_numbers: coilRefsToComplete });
         if (coilError) {
           console.error('Failed to update coils status to Completed:', coilError);
         }
