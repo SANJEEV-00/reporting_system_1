@@ -654,6 +654,7 @@ export default function EmployeeDashboard() {
           .rpc('complete_fabrication_coils', { coil_numbers: coilRefsToComplete });
         if (coilError) {
           console.error('Failed to update coils status to Completed:', coilError);
+          alert('Warning: Tasks saved, but failed to mark coil as completed: ' + coilError.message);
         }
       }
       
