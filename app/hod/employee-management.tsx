@@ -54,6 +54,7 @@ export default function EmployeeManagementScreen() {
     employeeId: '',
   });
   const [editForm, setEditForm] = useState({
+    employeeId: '',
     name: '',
     designation: '',
   });
@@ -246,6 +247,7 @@ export default function EmployeeManagementScreen() {
   const handleOpenEditModal = (emp: User) => {
     setSelectedEmp(emp);
     setEditForm({
+      employeeId: emp.employeeId,
       name: emp.name,
       designation: emp.designation || '',
     });
@@ -254,9 +256,9 @@ export default function EmployeeManagementScreen() {
 
   const handleEditEmployee = async () => {
     if (!selectedEmp) return;
-    const { name, designation } = editForm;
-    if (!name.trim() || !designation.trim()) {
-      showAlert('Validation Error', 'Name and Designation cannot be empty.');
+    const { employeeId, name, designation } = editForm;
+    if (!employeeId.trim() || !name.trim() || !designation.trim()) {
+      showAlert('Validation Error', 'Employee ID, Name, and Designation cannot be empty.');
       return;
     }
 
@@ -265,12 +267,18 @@ export default function EmployeeManagementScreen() {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
+          employee_id: employeeId.trim().toUpperCase(),
           name: name.trim(),
           designation: designation.trim(),
         })
         .eq('id', selectedEmp.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        if (updateError.code === '23505') {
+          throw new Error('This Employee ID already exists.');
+        }
+        throw updateError;
+      }
 
       showAlert('Success', 'Employee updated successfully!');
       setIsEditModalOpen(false);
@@ -653,9 +661,10 @@ export default function EmployeeManagementScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Employee ID</Text>
                 <TextInput
-                  style={[styles.modalInput, styles.inputDisabled]}
-                  value={selectedEmp?.employeeId}
-                  editable={false}
+                  style={styles.modalInput}
+                  value={editForm.employeeId}
+                  onChangeText={(text) => setEditForm({ ...editForm, employeeId: text })}
+                  autoCapitalize="characters"
                 />
               </View>
 
