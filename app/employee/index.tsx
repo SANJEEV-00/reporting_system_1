@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Brand } from '@/constants/brand';
@@ -35,6 +36,33 @@ const draftCache: Record<string, {
 export default function EmployeeDashboard() {
   const { user } = useAuth();
   const draft = user?.id ? draftCache[user.id] : null;
+
+  const checkLeaveStatus = useCallback(async () => {
+    if (!user?.id) return false;
+    const todayStr = new Date().toISOString().split('T')[0];
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('on_leave, leave_date')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        const isLeave = !!(data.on_leave && data.leave_date === todayStr);
+        setIsOnLeaveToday(isLeave);
+        return isLeave;
+      }
+    } catch (err) {
+      console.error("Error checking leave status:", err);
+    }
+    return false;
+  }, [user?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      checkLeaveStatus();
+    }, [checkLeaveStatus])
+  );
 
   const [description, setDescription] = useState(draft?.description || '');
   const [startTime, setStartTime] = useState(draft?.startTime || '08:30');
@@ -70,6 +98,7 @@ export default function EmployeeDashboard() {
   const [coilRef4, setCoilRef4] = useState(draft?.coilRef4 || '');
   
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isOnLeaveToday, setIsOnLeaveToday] = useState(false);
 
   // Identify selected project characteristics
   const selectedProjObj = useMemo(() => {
@@ -291,6 +320,12 @@ export default function EmployeeDashboard() {
   }, [startTime, durationHours, durationMinutes]);
 
   const handleAddTask = async () => {
+    const isLeave = await checkLeaveStatus();
+    if (isLeave) {
+      alert('You are marked as ON LEAVE today. You cannot log tasks today.');
+      return;
+    }
+
     if (!user || !user.id || !user.employeeId) {
       alert('User not identified. Please login again.');
       return;
@@ -612,6 +647,12 @@ export default function EmployeeDashboard() {
 
   const handleSaveAll = async () => {
     if (isSaving) return;
+    const isLeave = await checkLeaveStatus();
+    if (isLeave) {
+      alert('You are marked as ON LEAVE today. You cannot submit reports today.');
+      return;
+    }
+
     if (dailyTasks.length === 0) {
       alert("No tasks to save. Please add a task first.");
       return;
@@ -992,7 +1033,11 @@ export default function EmployeeDashboard() {
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+            <TouchableOpacity 
+              style={[styles.addButton, isOnLeaveToday && { opacity: 0.5 }]} 
+              onPress={handleAddTask}
+              disabled={isOnLeaveToday}
+            >
               <Text style={styles.addButtonText}>add</Text>
             </TouchableOpacity>
           )}
@@ -1009,7 +1054,11 @@ export default function EmployeeDashboard() {
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={styles.mobileAddBtn} onPress={handleAddTask}>
+            <TouchableOpacity 
+              style={[styles.mobileAddBtn, isOnLeaveToday && { opacity: 0.5 }]} 
+              onPress={handleAddTask}
+              disabled={isOnLeaveToday}
+            >
               <Text style={styles.mobileAddBtnText}>Add Task</Text>
             </TouchableOpacity>
           )}
@@ -1085,9 +1134,9 @@ export default function EmployeeDashboard() {
       {/* Save Button */}
       <View style={styles.saveContainer}>
         <TouchableOpacity 
-          style={[styles.saveButton, (isSaving || dailyTasks.length === 0) && { opacity: 0.7 }]} 
+          style={[styles.saveButton, (isSaving || dailyTasks.length === 0 || isOnLeaveToday) && { opacity: 0.7 }]} 
           onPress={handleSaveAll}
-          disabled={isSaving || dailyTasks.length === 0}
+          disabled={isSaving || dailyTasks.length === 0 || isOnLeaveToday}
         >
           {isSaving ? (
             <ActivityIndicator color={Brand.colors.white} size="small" />
@@ -1115,6 +1164,15 @@ export default function EmployeeDashboard() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {isOnLeaveToday && (
+            <View style={styles.leaveBanner}>
+              <Ionicons name="warning" size={20} color="#DC2626" style={{ marginRight: 8 }} />
+              <Text style={styles.leaveBannerText}>
+                You are marked as ON LEAVE today. Task logging is disabled.
+              </Text>
+            </View>
+          )}
+
           <View style={isDesktop ? styles.desktopLayoutRow : styles.card}>
             {isDesktop ? (
               <>
@@ -1429,5 +1487,22 @@ const styles = StyleSheet.create({
   flexFull: {
     width: '100%',
     gap: 8,
+  },
+  leaveBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FCA5A5',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    width: '100%',
+  },
+  leaveBannerText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
   },
 });
