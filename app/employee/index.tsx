@@ -734,6 +734,7 @@ export default function EmployeeDashboard() {
               }}
               style={styles.picker}
               placeholder="Select Project"
+              searchable={true}
               items={departmentProjects.map(proj => ({
                 label: `${proj.projectid} - ${proj.projectname}`,
                 value: proj.projectid
@@ -822,6 +823,7 @@ export default function EmployeeDashboard() {
               onValueChange={setCoilRef1}
               style={styles.picker}
               placeholder="Select Coil Reference"
+              searchable={true}
               items={projectCoils.map((c) => ({
                 label: c.coil_no,
                 value: c.coil_no,
@@ -841,6 +843,7 @@ export default function EmployeeDashboard() {
                 onValueChange={setSelectedRod}
                 style={styles.picker}
                 placeholder="Select Rod Type"
+                searchable={true}
                 items={projectRods.map((r) => ({
                   label: r.rod_type,
                   value: r.rod_type,
@@ -881,6 +884,7 @@ export default function EmployeeDashboard() {
                 }}
                 style={styles.picker}
                 placeholder="Select Component"
+                searchable={true}
                 items={projectComponents.map(comp => ({
                   label: comp.component_name,
                   value: comp.component_name
@@ -910,6 +914,7 @@ export default function EmployeeDashboard() {
               onValueChange={setDescription}
               style={styles.picker}
               placeholder="Select Task Description"
+              searchable={true}
               items={predefinedTasks.map((t) => ({
                 label: t.task_name,
                 value: t.task_name,
