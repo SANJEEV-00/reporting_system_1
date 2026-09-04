@@ -132,9 +132,9 @@ async function runSync() {
           MERGE INTO profiles AS target
           USING (SELECT @id, @employee_id, @name, @email, @role, @department, @designation, @status, @created_at, @updated_at) AS source 
                 (id, employee_id, name, email, role, department, designation, status, created_at, updated_at)
-          ON target.id = source.id
+          ON target.employee_id = source.employee_id OR target.id = source.id
           WHEN MATCHED THEN
-              UPDATE SET employee_id = source.employee_id, name = source.name, email = source.email, 
+              UPDATE SET id = source.id, employee_id = source.employee_id, name = source.name, email = source.email, 
                          role = source.role, department = source.department, designation = source.designation, 
                          status = source.status, updated_at = source.updated_at
           WHEN NOT MATCHED THEN

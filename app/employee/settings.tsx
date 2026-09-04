@@ -16,7 +16,7 @@ export default function EmployeeSettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
-  const isFabrication = user?.department === 'Fabrication';
+  const isFabrication = user?.department?.toLowerCase() === 'fabrication';
   const [form, setForm] = useState({
     name: user?.name || '',
     department: user?.department || '',

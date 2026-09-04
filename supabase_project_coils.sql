@@ -31,6 +31,11 @@ RETURNS VOID AS $$
 BEGIN
   UPDATE public.fabrication_coils
   SET status = 'Completed'
-  WHERE coil_no = ANY(coil_numbers);
+  WHERE LOWER(TRIM(coil_no)) = ANY(SELECT LOWER(TRIM(u)) FROM unnest(coil_numbers) AS u);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execution permissions
+GRANT EXECUTE ON FUNCTION public.complete_fabrication_coils(TEXT[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.complete_fabrication_coils(TEXT[]) TO service_role;
+

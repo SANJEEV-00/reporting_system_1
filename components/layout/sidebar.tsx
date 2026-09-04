@@ -35,7 +35,7 @@ export function Sidebar({ isMobile }: { isMobile?: boolean }) {
   const navItems = React.useMemo(() => {
     if (user?.role === 'hod') {
       const items = [...HOD_NAV_ITEMS];
-      if (user?.department === 'Fabrication') {
+      if (user?.department?.toLowerCase() === 'fabrication') {
         const idx = items.findIndex(item => item.name === 'Settings');
         if (idx !== -1) {
           items.splice(idx, 0, 

@@ -679,7 +679,7 @@ export default function EmployeeDashboard() {
       if (error) throw error;
 
       // Automatically update the status of used coils to 'Completed' in the cloud database
-      const isFabrication = user?.department === 'Fabrication';
+      const isFabrication = user?.department?.toLowerCase() === 'fabrication';
       const coilRefsToComplete: string[] = [];
       if (isFabrication) {
         dailyTasks.forEach(task => {
@@ -696,6 +696,9 @@ export default function EmployeeDashboard() {
         if (coilError) {
           console.error('Failed to update coils status to Completed:', coilError);
           alert('Warning: Tasks saved, but failed to mark coil as completed: ' + coilError.message);
+        } else {
+          // Immediately refresh active coils in dropdown
+          fetchCoils();
         }
       }
       
